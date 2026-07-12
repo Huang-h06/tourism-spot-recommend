@@ -28,6 +28,29 @@ def recommend_spot():
     data = db.recommend_by_tag(tag)
     return jsonify({"code": 200, "recommend": data})
 
+# 获取所有视频
+@app.route("/api/videos", methods=["GET"])
+def get_all_videos():
+    data = db.get_all_videos()
+    return jsonify({"code": 200, "data": data, "msg": "查询成功"})
+
+# 根据景点ID获取视频列表
+@app.route("/api/spots/<int:spot_id>/videos", methods=["GET"])
+def get_spot_videos(spot_id):
+    spot = db.get_spot_by_id(spot_id)
+    if not spot:
+        return jsonify({"code": 404, "msg": "景点不存在"}), 404
+    videos = db.get_videos_by_spot(spot_id)
+    return jsonify({"code": 200, "data": videos, "spot": spot["name"]})
+
+# 根据视频ID获取视频详情
+@app.route("/api/videos/<int:video_id>", methods=["GET"])
+def get_video_detail(video_id):
+    video = db.get_video_by_id(video_id)
+    if not video:
+        return jsonify({"code": 404, "msg": "视频不存在"}), 404
+    return jsonify({"code": 200, "data": video})
+
 # 全局异常捕获
 @app.errorhandler(Exception)
 def err_handler(e):
