@@ -41,19 +41,15 @@ def init_db():
             ("鼓浪屿", "厦门", "5A", "海岛休闲", "文艺海岛，万国建筑")
         ]
         cursor.executemany('INSERT INTO spots(name,city,level,tag,desc) VALUES(?,?,?,?,?)', init_data)
-    # 判断视频表是否有数据，没有则插入初始视频
+    # 判断视频表是否有数据，没有则插入初始视频（本地静态文件路径）
     cursor.execute("SELECT COUNT(*) FROM videos")
     video_count = cursor.fetchone()[0]
     if video_count == 0:
         video_data = [
-            (1, "西湖十景·航拍全景", "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", "https://picsum.photos/seed/xihu/640/360", "08:30"),
-            (1, "西湖雪景·冬日断桥", "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", "https://picsum.photos/seed/xihu2/640/360", "05:20"),
-            (2, "故宫600年·皇城中轴线", "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4", "https://picsum.photos/seed/gugong/640/360", "12:15"),
-            (2, "故宫珍宝馆探秘", "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4", "https://picsum.photos/seed/gugong2/640/360", "09:45"),
-            (3, "张家界·峰林云海", "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4", "https://picsum.photos/seed/zjj/640/360", "10:00"),
-            (3, "张家界玻璃栈道挑战", "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4", "https://picsum.photos/seed/zjj2/640/360", "06:40"),
-            (4, "鼓浪屿·文艺慢生活", "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4", "https://picsum.photos/seed/gly/640/360", "07:25"),
-            (4, "鼓浪屿万国建筑巡礼", "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4", "https://picsum.photos/seed/gly2/640/360", "11:10")
+            (1, "西湖十景·航拍全景", "/static/videos/xihu.mp4", "/static/images/xihu.jpg", "08:30"),
+            (2, "故宫600年·皇城中轴线", "/static/videos/gugong.mp4", "/static/images/gugong.jpg", "12:15"),
+            (3, "张家界·峰林云海", "/static/videos/zhangjiajie.mp4", "/static/images/zhangjiajie.jpg", "10:00"),
+            (4, "鼓浪屿·文艺慢生活", "/static/videos/xiamen.mp4", "/static/images/gulangyu.jpg", "07:25")
         ]
         cursor.executemany('INSERT INTO videos(spot_id,title,url,cover,duration) VALUES(?,?,?,?,?)', video_data)
     conn.commit()
