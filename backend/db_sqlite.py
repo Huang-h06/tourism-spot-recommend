@@ -38,7 +38,10 @@ def init_db():
             ("西湖", "杭州", "5A", "自然风光", "西湖十景，江南水乡代表"),
             ("故宫", "北京", "5A", "人文古迹", "明清皇家宫殿建筑群"),
             ("张家界", "张家界", "5A", "自然风光", "石英砂岩峰林地貌"),
-            ("鼓浪屿", "厦门", "5A", "海岛休闲", "文艺海岛，万国建筑")
+            ("鼓浪屿", "厦门", "5A", "海岛休闲", "文艺海岛，万国建筑"),
+            ("丽江", "丽江", "5A", "古城风光", "丽江古城，玉龙雪山"),
+            ("西藏", "拉萨", "5A", "高原圣地", "布达拉宫，世界屋脊"),
+            ("新疆", "乌鲁木齐", "5A", "西域风情", "天山天池，大美新疆")
         ]
         cursor.executemany('INSERT INTO spots(name,city,level,tag,desc) VALUES(?,?,?,?,?)', init_data)
     # 判断视频表是否有数据，没有则插入初始视频（本地静态文件路径）
@@ -49,7 +52,10 @@ def init_db():
             (1, "西湖十景·航拍全景", "/static/videos/xihu.mp4", "/static/images/xihu.jpg", "08:30"),
             (2, "故宫600年·皇城中轴线", "/static/videos/gugong.mp4", "/static/images/gugong.jpg", "12:15"),
             (3, "张家界·峰林云海", "/static/videos/zhangjiajie.mp4", "/static/images/zhangjiajie.jpg", "10:00"),
-            (4, "鼓浪屿·文艺慢生活", "/static/videos/xiamen.mp4", "/static/images/gulangyu.jpg", "07:25")
+            (4, "鼓浪屿·文艺慢生活", "/static/videos/xiamen.mp4", "/static/images/gulangyu.jpg", "07:25"),
+            (5, "丽江古城·玉龙雪山", "/static/videos/lijiang.mp4", "/static/images/lijiang.jpg", "05:30"),
+            (6, "西藏·世界屋脊", "/static/videos/xizang.mp4", "/static/images/xizang.jpg", "06:20"),
+            (7, "新疆·大美西域", "/static/videos/xinjiang.mp4", "/static/images/xinjiang.jpg", "06:10")
         ]
         cursor.executemany('INSERT INTO videos(spot_id,title,url,cover,duration) VALUES(?,?,?,?,?)', video_data)
     conn.commit()
