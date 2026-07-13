@@ -62,5 +62,10 @@ def err_handler(e):
 def index():
     return render_template("index.html")
 
+# 详情页路由
+@app.route("/detail")
+def detail_page():
+    return render_template("detail.html")
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
