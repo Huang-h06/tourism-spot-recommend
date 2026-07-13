@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>旅游景点推荐系统</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body{
+            background-color: #f5f7fa;
+            padding: 30px;
+        }
+        h1{
+            text-align: center;
+            color:#222;
+            margin-bottom: 40px;
+        }
+        .container{
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            gap:24px;
+        }
+        .spot-card{
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px #00000015;
+        }
+        .spot-card img{
+            width:100%;
+            height:180px;
+            object-fit: cover;
+        }
+        .info{
+            padding:16px;
+        }
+        .name{
+            font-size:18px;
+            font-weight:bold;
+            margin-bottom:8px;
+        }
+        .city,.level,.tag{
+            font-size:14px;
+            color:#555;
+            margin:4px 0;
+        }
+        .desc{
+            margin-top:10px;
+            font-size:13px;
+            color:#666;
+        }
+    </style>
+</head>
+<body>
+    <h1>热门旅游景点推荐</h1>
+    <div class="container" id="list"></div>
+
+    <script>
+        // 中文名与图片文件名映射
+        const imgMap = {"西湖":"xihu","故宫":"gugong","张家界":"zhangjiajie","鼓浪屿":"gulangyu"};
+
+        // 请求后端景点接口
+        fetch("/api/spots")
+        .then(res=>res.json())
+        .then(result=>{
+            const data = result.data;
+            const box = document.getElementById("list");
+            data.forEach(item=>{
+                let card = `
+                <div class="spot-card">
+                    <img src="static/images/${imgMap[item.name]}.jpg" alt="${item.name}">
+                    <div class="info">
+                        <div class="name">${item.name}</div>
+                        <div class="city">城市：${item.city}</div>
+                        <div class="level">等级：${item.level}</div>
+                        <div class="tag">标签：${item.tag}</div>
+                        <div class="desc">简介：${item.desc}</div>
+                    </div>
+                </div>
+                `
+                box.innerHTML += card;
+            })
+        })
+    </script>
+</body>
+</html>
