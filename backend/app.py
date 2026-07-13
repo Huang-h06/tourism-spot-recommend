@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, render_template
 from flask_cors import CORS
 import os
 import db_sqlite as db
@@ -56,6 +56,11 @@ def get_video_detail(video_id):
 @app.errorhandler(Exception)
 def err_handler(e):
     return jsonify({"code": 500, "msg": f"服务器异常：{str(e)}"}), 500
+
+# 首页路由
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
