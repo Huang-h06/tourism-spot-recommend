@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, request, send_from_directory, render_template
 from flask_cors import CORS
 import os
-import db_sqlite as db
+# import db_sqlite as db
+import db_supabase as db
 
 app = Flask(__name__, static_folder="static")
 CORS(app)
