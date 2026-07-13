@@ -55,8 +55,8 @@ def init_db():
     conn.commit()
     conn.close()
 
-# 查询所有景点（支持筛选）
-def query_spots(city="", level=""):
+# 查询所有景点（支持城市、标签模糊筛选）
+def query_spots(city="", tag=""):
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -65,9 +65,9 @@ def query_spots(city="", level=""):
     if city:
         sql += " AND city LIKE ?"
         params.append(f"%{city}%")
-    if level:
-        sql += " AND level = ?"
-        params.append(level)
+    if tag:
+        sql += " AND tag LIKE ?"
+        params.append(f"%{tag}%")
     cursor.execute(sql, params)
     rows = cursor.fetchall()
     result = [dict(row) for row in rows]

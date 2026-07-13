@@ -6,12 +6,12 @@ import db_sqlite as db
 app = Flask(__name__, static_folder="static")
 CORS(app)
 
-# 获取全部景点，支持按城市、等级筛选
+# 获取全部景点，支持按城市、标签模糊筛选
 @app.route("/api/spots", methods=["GET"])
 def get_all_spots():
     city = request.args.get("city", "")
-    level = request.args.get("level", "")
-    res = db.query_spots(city, level)
+    tag = request.args.get("tag", "")
+    res = db.query_spots(city, tag)
     return jsonify({"code": 200, "data": res, "msg": "查询成功"})
 
 # 根据ID获取单个景点详情
