@@ -68,6 +68,11 @@ instance/
 # SQLite database (auto-generated)
 tourism.db
 
+# Video / media cache
+*.crdownload
+*.part
+Thumbs.db
+
 # Scrapy stuff:
 .scrapy
 
