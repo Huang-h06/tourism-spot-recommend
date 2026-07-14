@@ -24,14 +24,31 @@
             color:#0066cc;
             cursor:pointer;
         }
+        .video-block{
+            margin-top:30px;
+        }
+        #videoList{
+            display: grid;
+            grid-template-columns: repeat(2,1fr);
+            gap:16px;
+            margin-top:12px;
+        }
+        #videoList video{
+            width:100%;
+            border-radius:6px;
+        }
     </style>
 </head>
 <body>
     <div class="back" onclick="history.back()"><< 返回列表</div>
     <div id="content"></div>
+    <div class="video-block">
+        <h3>相关景点视频</h3>
+        <div id="videoList"></div>
+    </div>
     <script>
         // 中文名与图片文件名映射
-        const imgMap = {"西湖":"xihu","故宫":"gugong","张家界":"zhangjiajie","鼓浪屿":"gulangyu","丽江":"lijiang","西藏":"xizang","新疆":"xinjiang"};
+        const imgMap = {"西湖":"xihu","故宫":"gugong","张家界":"zhangjiajie","鼓浪屿":"gulangyu","丽江":"lijiang","西藏":"xizang","新疆":"xinjiang","成都":"chengdu","重庆":"chongqing","青岛":"qingdao"};
         // 获取地址栏id
         const params = new URLSearchParams(location.search);
         const sid = params.get("id");
@@ -50,6 +67,23 @@
                 </div>
             `
             document.getElementById("content").innerHTML = html;
+        })
+        // 加载关联视频
+        fetch(`/api/spots/${sid}/videos`)
+        .then(res=>res.json())
+        .then(videoRes=>{
+            const vBox = document.getElementById("videoList");
+            if(!videoRes.data || videoRes.data.length === 0){
+                vBox.innerHTML = "<p>暂无相关视频</p>";
+                return;
+            }
+            videoRes.data.forEach(v=>{
+                vBox.innerHTML += `
+                    <video controls preload="none">
+                        <source src="${v.url}" type="video/mp4">
+                    </video>
+                `
+            })
         })
     </script>
 </body>
