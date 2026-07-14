@@ -22,10 +22,16 @@ def get_user_by_username(username):
 # 根据id查询用户
 
 def get_user_by_id(user_id):
-    res = supabase.table("users").select("id,username,email,created_at").eq("id", user_id).execute()
+    res = supabase.table("users").select("id,username,email,avatar_url,created_at").eq("id", user_id).execute()
     if len(res.data) == 0:
         return None
     return res.data[0]
+
+
+# 更新用户头像
+def update_user_avatar(user_id, avatar_url):
+    res = supabase.table("users").update({"avatar_url": avatar_url}).eq("id", user_id).execute()
+    return res.data
 
 
 # 注册新用户
@@ -71,12 +77,64 @@ def get_comments_by_spot(spot_id):
 
 
 # 新增评论
-def add_comment(spot_id, username, content):
-    res = supabase.table("comments").insert({
+def add_comment(spot_id, username, content, user_id=None):
+    data = {
         "spot_id": spot_id,
         "username": username,
         "content": content
+    }
+    if user_id:
+        data["user_id"] = user_id
+    res = supabase.table("comments").insert(data).execute()
+    return res.data
+
+
+# 获取某用户的所有评论
+def get_comments_by_user(user_id):
+    res = supabase.table("comments").select("*, spots(name)").eq("user_id", user_id).order("created_at", desc=True).execute()
+    return res.data
+
+
+# 添加收藏
+def add_favorite(user_id, spot_id):
+    res = supabase.table("favorites").upsert({
+        "user_id": user_id,
+        "spot_id": spot_id
     }).execute()
+    return res.data
+
+
+# 取消收藏
+def remove_favorite(user_id, spot_id):
+    res = supabase.table("favorites").delete().eq("user_id", user_id).eq("spot_id", spot_id).execute()
+    return res.data
+
+
+# 获取用户收藏列表
+def get_user_favorites(user_id):
+    res = supabase.table("favorites").select("*, spots(name,city,level,tag)").eq("user_id", user_id).order("created_at", desc=True).execute()
+    return res.data
+
+
+# 检查是否已收藏
+def is_favorited(user_id, spot_id):
+    res = supabase.table("favorites").select("id").eq("user_id", user_id).eq("spot_id", spot_id).execute()
+    return len(res.data) > 0
+
+
+# 添加浏览记录
+def add_browsing_history(user_id, spot_id):
+    res = supabase.table("browsing_history").upsert({
+        "user_id": user_id,
+        "spot_id": spot_id,
+        "viewed_at": "now()"
+    }).execute()
+    return res.data
+
+
+# 获取用户浏览记录
+def get_user_browsing_history(user_id):
+    res = supabase.table("browsing_history").select("*, spots(name,city,level,tag)").eq("user_id", user_id).order("viewed_at", desc=True).execute()
     return res.data
 
 

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>个人主页</title>
+    <style>
+        *{ margin:0; padding:0; box-sizing:border-box; }
+        body{
+            background:#f5f7fa;
+            padding:30px;
+            font-family:"Microsoft YaHei","PingFang SC",sans-serif;
+        }
+        .container{
+            max-width:900px;
+            margin:0 auto;
+        }
+
+        /* 顶部栏 */
+        .top-bar{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:25px;
+        }
+        .top-bar a{
+            color:#3478f6;
+            text-decoration:none;
+            font-size:15px;
+        }
+        .top-bar a:hover{ text-decoration:underline; }
+        .logout-btn{
+            background:#ff4d4f;
+            color:white;
+            border:none;
+            padding:8px 18px;
+            border-radius:6px;
+            cursor:pointer;
+            font-size:14px;
+        }
+
+        /* 用户卡片 */
+        .user-card{
+            background:#fff;
+            border-radius:12px;
+            padding:30px;
+            box-shadow:0 2px 12px rgba(0,0,0,0.08);
+            display:flex;
+            align-items:center;
+            gap:24px;
+            margin-bottom:24px;
+        }
+        .avatar-wrap{
+            position:relative;
+            cursor:pointer;
+        }
+        .avatar{
+            width:80px;
+            height:80px;
+            border-radius:50%;
+            object-fit:cover;
+            background:#e0e7ff;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:32px;
+            font-weight:bold;
+            color:#3478f6;
+            overflow:hidden;
+        }
+        .avatar img{
+            width:100%;
+            height:100%;
+            object-fit:cover;
+        }
+        .avatar-overlay{
+            position:absolute;
+            bottom:0;
+            left:0;
+            right:0;
+            background:rgba(0,0,0,0.5);
+            color:white;
+            text-align:center;
+            font-size:12px;
+            padding:4px 0;
+            border-radius:0 0 40px 40px;
+            opacity:0;
+            transition:opacity 0.2s;
+        }
+        .avatar-wrap:hover .avatar-overlay{ opacity:1; }
+        .user-meta h2{ font-size:22px; margin-bottom:6px; }
+        .user-meta p{ font-size:14px; color:#888; }
+
+        /* Tab 导航 */
+        .tabs{
+            display:flex;
+            gap:0;
+            border-bottom:2px solid #e0e0e0;
+            margin-bottom:20px;
+        }
+        .tab-btn{
+            padding:12px 24px;
+            border:none;
+            background:none;
+            font-size:15px;
+            cursor:pointer;
+            color:#666;
+            border-bottom:2px solid transparent;
+            margin-bottom:-2px;
+            transition:all 0.2s;
+        }
+        .tab-btn.active{
+            color:#3478f6;
+            border-bottom-color:#3478f6;
+            font-weight:bold;
+        }
+
+        /* 列表通用 */
+        .tab-content{ display:none; }
+        .tab-content.active{ display:block; }
+        .card-list{
+            display:flex;
+            flex-direction:column;
+            gap:12px;
+        }
+        .card-item{
+            background:#fff;
+            border-radius:10px;
+            padding:16px 20px;
+            box-shadow:0 1px 6px rgba(0,0,0,0.06);
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            cursor:pointer;
+            transition:box-shadow 0.2s;
+        }
+        .card-item:hover{ box-shadow:0 4px 16px rgba(0,0,0,0.1); }
+        .card-left{ flex:1; }
+        .card-left .spot-name{
+            font-size:16px;
+            font-weight:bold;
+            color:#222;
+            margin-bottom:4px;
+        }
+        .card-left .spot-meta{
+            font-size:13px;
+            color:#888;
+        }
+        .card-right{
+            display:flex;
+            align-items:center;
+            gap:12px;
+        }
+        .card-time{
+            font-size:12px;
+            color:#bbb;
+        }
+        .unfav-btn{
+            background:none;
+            border:1px solid #ffccc7;
+            color:#ff4d4f;
+            padding:6px 14px;
+            border-radius:6px;
+            cursor:pointer;
+            font-size:13px;
+        }
+        .unfav-btn:hover{
+            background:#fff1f0;
+        }
+
+        /* 评论列表 */
+        .comment-item{
+            background:#fff;
+            border-radius:10px;
+            padding:16px 20px;
+            box-shadow:0 1px 6px rgba(0,0,0,0.06);
+        }
+        .comment-header{
+            display:flex;
+            justify-content:space-between;
+            margin-bottom:8px;
+            font-size:13px;
+            color:#888;
+        }
+        .comment-header .spot-name{
+            font-weight:bold;
+            color:#3478f6;
+            font-size:14px;
+        }
+        .comment-body{
+            font-size:14px;
+            line-height:1.6;
+            color:#444;
+        }
+
+        .empty-tip{
+            text-align:center;
+            padding:60px 20px;
+            color:#aaa;
+            font-size:15px;
+        }
+
+        /* 弹窗 */
+        .modal-overlay{
+            position:fixed;
+            top:0; left:0;
+            width:100%; height:100%;
+            background:rgba(0,0,0,0.3);
+            display:none;
+            justify-content:center;
+            align-items:center;
+            z-index:200;
+        }
+        .modal-overlay.show{ display:flex; }
+        .modal-box{
+            background:#fff;
+            padding:28px;
+            border-radius:10px;
+            width:380px;
+            max-width:90%;
+            position:relative;
+        }
+        .modal-box h3{ text-align:center; margin-bottom:18px; }
+        .modal-box input{
+            width:100%;
+            padding:10px;
+            margin-bottom:12px;
+            border:1px solid #ddd;
+            border-radius:6px;
+            font-size:14px;
+        }
+        .modal-box button[type="submit"]{
+            width:100%;
+            padding:10px;
+            border:none;
+            border-radius:6px;
+            background:#3478f6;
+            color:white;
+            font-size:15px;
+            cursor:pointer;
+        }
+        .modal-box .close{
+            position:absolute;
+            top:12px; right:16px;
+            font-size:22px;
+            cursor:pointer;
+            color:#999;
+        }
+        .preview-avatar{
+            width:80px; height:80px;
+            border-radius:50%;
+            margin:0 auto 14px;
+            display:block;
+            object-fit:cover;
+            background:#e0e7ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部 -->
+        <div class="top-bar">
+            <a href="/">&larr; 返回首页</a>
+            <button class="logout-btn" onclick="logout()">退出登录</button>
+        </div>
+
+        <!-- 用户信息卡 -->
+        <div class="user-card" id="userCard">
+            <div class="avatar-wrap" onclick="openAvatarModal()">
+                <div class="avatar" id="avatarEl"></div>
+                <div class="avatar-overlay">更换头像</div>
+            </div>
+            <div class="user-meta" id="userMeta"></div>
+        </div>
+
+        <!-- Tab 导航 -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('favorites')">我的收藏</button>
+            <button class="tab-btn" onclick="switchTab('history')">浏览记录</button>
+            <button class="tab-btn" onclick="switchTab('comments')">我的评论</button>
+        </div>
+
+        <!-- 收藏 -->
+        <div class="tab-content active" id="tab-favorites">
+            <div class="card-list" id="favList"></div>
+        </div>
+
+        <!-- 浏览记录 -->
+        <div class="tab-content" id="tab-history">
+            <div class="card-list" id="hisList"></div>
+        </div>
+
+        <!-- 我的评论 -->
+        <div class="tab-content" id="tab-comments">
+            <div class="card-list" id="comList"></div>
+        </div>
+    </div>
+
+    <!-- 更换头像弹窗 -->
+    <div class="modal-overlay" id="avatarModal">
+        <div class="modal-box">
+            <div class="close" onclick="closeAvatarModal()">&times;</div>
+            <h3>更换头像</h3>
+            <img class="preview-avatar" id="avatarPreview" src="" alt="预览">
+            <input type="text" id="avatarUrl" placeholder="请输入头像图片URL">
+            <p style="font-size:12px;color:#aaa;margin-bottom:12px;">复制网络图片地址粘贴即可</p>
+            <button type="submit" onclick="saveAvatar()">保存</button>
+        </div>
+    </div>
+
+    <script>
+        const imgMap = {"西湖":"xihu","故宫":"gugong","张家界":"zhangjiajie","鼓浪屿":"gulangyu","丽江":"lijiang","西藏":"xizang","新疆":"xinjiang","成都":"chengdu","重庆":"chongqing","青岛":"qingdao"};
+
+        // 检查登录
+        const user = JSON.parse(localStorage.getItem("user") || "null");
+        if(!user){
+            alert("请先登录");
+            location.href = "/";
+        }
+
+        function getAvatarHtml(){
+            if(user.avatar_url){
+                return `<img src="${user.avatar_url}" alt="头像">`;
+            }
+            return user.username.charAt(0).toUpperCase();
+        }
+
+        // 渲染用户卡片
+        document.getElementById("avatarEl").innerHTML = getAvatarHtml();
+        document.getElementById("userMeta").innerHTML = `
+            <h2>${user.username}</h2>
+            <p>${user.email || "未填写邮箱"} | 注册于 ${new Date(user.created_at || Date.now()).toLocaleDateString()}</p>
+        `;
+
+        // Tab 切换
+        function switchTab(name){
+            document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+            document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));
+            event.target.classList.add("active");
+            document.getElementById("tab-"+name).classList.add("active");
+        }
+
+        // 加载收藏
+        function loadFavorites(){
+            fetch(`/api/favorites?user_id=${user.id}`)
+            .then(res=>res.json())
+            .then(result=>{
+                const box = document.getElementById("favList");
+                const data = result.data || [];
+                if(data.length === 0){
+                    box.innerHTML = `<div class="empty-tip">还没有收藏任何景点<br><br><a href="/" style="color:#3478f6;">去逛逛</a></div>`;
+                    return;
+                }
+                box.innerHTML = data.map(f=>{
+                    const name = f.spots ? f.spots.name : "未知景点";
+                    const city = f.spots ? f.spots.city : "";
+                    const img = imgMap[name] || "default";
+                    return `
+                        <div class="card-item" onclick="goDetail(${f.spot_id})">
+                            <div class="card-left">
+                                <div class="spot-name">${name}</div>
+                                <div class="spot-meta">${city} | ${f.spots ? f.spots.level : ""}</div>
+                            </div>
+                            <div class="card-right">
+                                <span class="card-time">${new Date(f.created_at).toLocaleString()}</span>
+                                <button class="unfav-btn" onclick="event.stopPropagation();unfav(${f.spot_id})">取消收藏</button>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+            });
+        }
+
+        // 取消收藏
+        function unfav(spot_id){
+            fetch(`/api/favorites?user_id=${user.id}&spot_id=${spot_id}`, {method:"DELETE"})
+            .then(res=>res.json())
+            .then(result=>{
+                if(result.code === 200){
+                    loadFavorites();
+                }
+            });
+        }
+
+        // 加载浏览记录
+        function loadHistory(){
+            fetch(`/api/history?user_id=${user.id}`)
+            .then(res=>res.json())
+            .then(result=>{
+                const box = document.getElementById("hisList");
+                const data = result.data || [];
+                if(data.length === 0){
+                    box.innerHTML = `<div class="empty-tip">还没有浏览记录<br><br><a href="/" style="color:#3478f6;">去逛逛</a></div>`;
+                    return;
+                }
+                box.innerHTML = data.map(h=>{
+                    const name = h.spots ? h.spots.name : "未知景点";
+                    const city = h.spots ? h.spots.city : "";
+                    return `
+                        <div class="card-item" onclick="goDetail(${h.spot_id})">
+                            <div class="card-left">
+                                <div class="spot-name">${name}</div>
+                                <div class="spot-meta">${city} | ${h.spots ? h.spots.level : ""}</div>
+                            </div>
+                            <div class="card-right">
+                                <span class="card-time">${new Date(h.viewed_at).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+            });
+        }
+
+        // 加载我的评论
+        function loadMyComments(){
+            fetch(`/api/comments/my?user_id=${user.id}`)
+            .then(res=>res.json())
+            .then(result=>{
+                const box = document.getElementById("comList");
+                const data = result.data || [];
+                if(data.length === 0){
+                    box.innerHTML = `<div class="empty-tip">还没有发表评论<br><br><a href="/" style="color:#3478f6;">去逛逛</a></div>`;
+                    return;
+                }
+                box.innerHTML = data.map(c=>`
+                    <div class="comment-item" onclick="goDetail(${c.spot_id})" style="cursor:pointer;">
+                        <div class="comment-header">
+                            <span class="spot-name">${c.spots ? c.spots.name : "未知景点"}</span>
+                            <span>${new Date(c.created_at).toLocaleString()}</span>
+                        </div>
+                        <div class="comment-body">${c.content}</div>
+                    </div>
+                `).join("");
+            });
+        }
+
+        function goDetail(id){
+            location.href = `/detail?id=${id}`;
+        }
+
+        function logout(){
+            localStorage.removeItem("user");
+            location.href = "/";
+        }
+
+        // 头像弹窗
+        function openAvatarModal(){
+            document.getElementById("avatarModal").classList.add("show");
+            document.getElementById("avatarUrl").value = user.avatar_url || "";
+            document.getElementById("avatarPreview").src = user.avatar_url || "";
+        }
+        function closeAvatarModal(){
+            document.getElementById("avatarModal").classList.remove("show");
+        }
+        function saveAvatar(){
+            const url = document.getElementById("avatarUrl").value.trim();
+            if(!url){ alert("请输入头像URL"); return; }
+            fetch("/api/avatar", {
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({user_id:user.id, avatar_url:url})
+            })
+            .then(res=>res.json())
+            .then(result=>{
+                if(result.code === 200){
+                    user.avatar_url = url;
+                    localStorage.setItem("user", JSON.stringify(user));
+                    document.getElementById("avatarEl").innerHTML = getAvatarHtml();
+                    closeAvatarModal();
+                }else{
+                    alert(result.msg || "更新失败");
+                }
+            });
+        }
+        document.getElementById("avatarUrl").addEventListener("input", function(){
+            document.getElementById("avatarPreview").src = this.value || "";
+        });
+        document.getElementById("avatarModal").addEventListener("click", function(e){
+            if(e.target.id === "avatarModal") closeAvatarModal();
+        });
+
+        // 初始加载
+        loadFavorites();
+        loadHistory();
+        loadMyComments();
+    </script>
+</body>
+</html>

@@ -128,6 +128,27 @@
             background:#ff4d4f;
             color:white;
         }
+        .profile-link{
+            color:#3478f6;
+            cursor:pointer;
+            text-decoration:none;
+            font-weight:bold;
+        }
+        .profile-link:hover{ text-decoration:underline; }
+        .fav-btn-big{
+            display:inline-block;
+            padding:10px 22px;
+            border:2px solid #ff4d4f;
+            border-radius:8px;
+            background:#fff;
+            color:#ff4d4f;
+            cursor:pointer;
+            font-size:15px;
+            margin-bottom:16px;
+            transition:all 0.2s;
+        }
+        .fav-btn-big:hover{ background:#fff1f0; }
+        .fav-btn-big.fav-active{ background:#ff4d4f; color:white; }
         .modal-overlay{
             position:fixed;
             top:0;
@@ -212,7 +233,8 @@
             </div>
         </div>
     </div>
-    <div class="back" onclick="history.back()"><< 返回列表</div>
+    <div class="back" onclick="history.back()">&lt;&lt; 返回列表</div>
+    <div class="fav-bar" id="favBar"></div>
     <div id="content"></div>
     <div class="video-block">
         <h3>相关景点视频</h3>
@@ -236,6 +258,17 @@
         // 获取地址栏id
         const params = new URLSearchParams(location.search);
         const sid = params.get("id");
+
+        // 记录浏览
+        const user = JSON.parse(localStorage.getItem("user") || "null");
+        if(user && sid){
+            fetch("/api/history", {
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({user_id:user.id, spot_id:parseInt(sid)})
+            });
+        }
+
         fetch(`/api/spots/${sid}`)
         .then(res=>res.json())
         .then(result=>{
@@ -251,7 +284,53 @@
                 </div>
             `
             document.getElementById("content").innerHTML = html;
+            // 加载收藏按钮
+            loadFavBtn();
         })
+
+        // 收藏按钮
+        function loadFavBtn(){
+            if(!user) return;
+            const favBar = document.getElementById("favBar");
+            fetch(`/api/favorites/check?user_id=${user.id}&spot_id=${sid}`)
+            .then(res=>res.json())
+            .then(r=>{
+                if(r.data){
+                    favBar.innerHTML = `<button class="fav-btn-big fav-active" onclick="toggleFav()">❤️ 已收藏</button>`;
+                }else{
+                    favBar.innerHTML = `<button class="fav-btn-big" onclick="toggleFav()">🤍 收藏</button>`;
+                }
+            });
+        }
+        function toggleFav(){
+            if(!user){ alert("请先登录"); return; }
+            const btn = document.querySelector(".fav-btn-big");
+            const isFav = btn.classList.contains("fav-active");
+            if(isFav){
+                fetch(`/api/favorites?user_id=${user.id}&spot_id=${sid}`, {method:"DELETE"})
+                .then(res=>res.json())
+                .then(r=>{
+                    if(r.code===200){
+                        btn.textContent="🤍 收藏";
+                        btn.classList.remove("fav-active");
+                    }
+                });
+            }else{
+                fetch("/api/favorites", {
+                    method:"POST",
+                    headers:{"Content-Type":"application/json"},
+                    body:JSON.stringify({user_id:user.id, spot_id:parseInt(sid)})
+                })
+                .then(res=>res.json())
+                .then(r=>{
+                    if(r.code===200){
+                        btn.textContent="❤️ 已收藏";
+                        btn.classList.add("fav-active");
+                    }
+                });
+            }
+        }
+
         // 加载关联视频
         fetch(`/api/spots/${sid}/videos`)
         .then(res=>res.json())
@@ -298,10 +377,12 @@
             const content = document.getElementById("commentContent").value.trim();
             if(!username){ alert("请输入昵称"); return; }
             if(!content){ alert("请输入评论内容"); return; }
+            const body = {username, content};
+            if(user) body.user_id = user.id;
             fetch(`/api/spots/${sid}/comments`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({username, content})
+                body: JSON.stringify(body)
             })
             .then(res=>res.json())
             .then(result=>{
@@ -338,7 +419,7 @@
             if(user){
                 bar.innerHTML = `
                     <div class="user-info">
-                        <span>${user.username}</span>
+                        <a class="profile-link" href="/profile">${user.username}</a>
                         <button onclick="logout()">退出</button>
                     </div>
                 `;
@@ -386,6 +467,7 @@
                         localStorage.setItem("user", JSON.stringify(result.data));
                         updateAuthBar();
                         updateCommentFormUser();
+                        loadFavBtn();
                         closeModal();
                     }else{
                         alert("注册成功，请登录");

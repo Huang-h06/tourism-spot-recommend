@@ -71,7 +71,8 @@ def login():
     return jsonify({"code": 200, "msg": "登录成功", "data": {
         "id": user["id"],
         "username": user["username"],
-        "email": user["email"]
+        "email": user["email"],
+        "avatar_url": user.get("avatar_url", "")
     }})
 
 
@@ -117,6 +118,7 @@ def post_spot_comment(spot_id):
     data = request.get_json()
     username = (data.get("username", "") or "").strip()
     content = (data.get("content", "") or "").strip()
+    user_id = data.get("user_id")
     if not username:
         return jsonify({"code": 400, "msg": "请输入昵称"}), 400
     if not content:
@@ -125,8 +127,98 @@ def post_spot_comment(spot_id):
         return jsonify({"code": 400, "msg": "昵称不超过50字"}), 400
     if len(content) > 500:
         return jsonify({"code": 400, "msg": "评论内容不超过500字"}), 400
-    comment = db.add_comment(spot_id, username, content)
+    comment = db.add_comment(spot_id, username, content, user_id)
     return jsonify({"code": 200, "data": comment, "msg": "评论成功"})
+
+
+# 获取用户评论列表
+@app.route("/api/comments/my", methods=["GET"])
+def get_my_comments():
+    user_id = request.args.get("user_id", type=int)
+    if not user_id:
+        return jsonify({"code": 400, "msg": "缺少用户ID"}), 400
+    comments = db.get_comments_by_user(user_id)
+    return jsonify({"code": 200, "data": comments})
+
+
+# 更新用户头像
+@app.route("/api/avatar", methods=["POST"])
+def update_avatar():
+    data = request.get_json()
+    user_id = data.get("user_id")
+    avatar_url = (data.get("avatar_url", "") or "").strip()
+    if not user_id:
+        return jsonify({"code": 400, "msg": "缺少用户ID"}), 400
+    if not avatar_url:
+        return jsonify({"code": 400, "msg": "请输入头像URL"}), 400
+    db.update_user_avatar(user_id, avatar_url)
+    return jsonify({"code": 200, "msg": "头像更新成功", "data": {"avatar_url": avatar_url}})
+
+
+# 获取用户收藏列表
+@app.route("/api/favorites", methods=["GET"])
+def get_favorites():
+    user_id = request.args.get("user_id", type=int)
+    if not user_id:
+        return jsonify({"code": 400, "msg": "缺少用户ID"}), 400
+    favorites = db.get_user_favorites(user_id)
+    return jsonify({"code": 200, "data": favorites})
+
+
+# 添加收藏
+@app.route("/api/favorites", methods=["POST"])
+def add_favorite():
+    data = request.get_json()
+    user_id = data.get("user_id")
+    spot_id = data.get("spot_id")
+    if not user_id or not spot_id:
+        return jsonify({"code": 400, "msg": "参数不完整"}), 400
+    db.add_favorite(user_id, spot_id)
+    return jsonify({"code": 200, "msg": "收藏成功"})
+
+
+# 取消收藏
+@app.route("/api/favorites", methods=["DELETE"])
+def remove_favorite():
+    user_id = request.args.get("user_id", type=int)
+    spot_id = request.args.get("spot_id", type=int)
+    if not user_id or not spot_id:
+        return jsonify({"code": 400, "msg": "参数不完整"}), 400
+    db.remove_favorite(user_id, spot_id)
+    return jsonify({"code": 200, "msg": "取消收藏"})
+
+
+# 检查是否已收藏
+@app.route("/api/favorites/check", methods=["GET"])
+def check_favorite():
+    user_id = request.args.get("user_id", type=int)
+    spot_id = request.args.get("spot_id", type=int)
+    if not user_id or not spot_id:
+        return jsonify({"code": 400, "msg": "参数不完整"}), 400
+    fav = db.is_favorited(user_id, spot_id)
+    return jsonify({"code": 200, "data": fav})
+
+
+# 获取用户浏览记录
+@app.route("/api/history", methods=["GET"])
+def get_history():
+    user_id = request.args.get("user_id", type=int)
+    if not user_id:
+        return jsonify({"code": 400, "msg": "缺少用户ID"}), 400
+    history = db.get_user_browsing_history(user_id)
+    return jsonify({"code": 200, "data": history})
+
+
+# 添加浏览记录
+@app.route("/api/history", methods=["POST"])
+def add_history():
+    data = request.get_json()
+    user_id = data.get("user_id")
+    spot_id = data.get("spot_id")
+    if not user_id or not spot_id:
+        return jsonify({"code": 400, "msg": "参数不完整"}), 400
+    db.add_browsing_history(user_id, spot_id)
+    return jsonify({"code": 200, "msg": "记录成功"})
 
 
 # 全局异常捕获
@@ -143,6 +235,11 @@ def index():
 @app.route("/detail")
 def detail_page():
     return render_template("detail.html")
+
+# 个人主页路由
+@app.route("/profile")
+def profile_page():
+    return render_template("profile.html")
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
