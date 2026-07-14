@@ -97,9 +97,121 @@
             line-height:1.6;
             color:#444;
         }
+        .auth-bar{
+            position:fixed;
+            top:20px;
+            right:30px;
+            z-index:100;
+        }
+        .auth-bar button{
+            padding:8px 18px;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+            font-size:14px;
+        }
+        .login-btn{
+            background:#3478f6;
+            color:white;
+        }
+        .user-info{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            background:#fff;
+            padding:8px 14px;
+            border-radius:6px;
+            box-shadow:0 2px 8px #00000012;
+            font-size:14px;
+        }
+        .user-info button{
+            background:#ff4d4f;
+            color:white;
+        }
+        .modal-overlay{
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:#00000050;
+            display:none;
+            justify-content:center;
+            align-items:center;
+            z-index:200;
+        }
+        .modal-overlay.show{
+            display:flex;
+        }
+        .modal-box{
+            background:#fff;
+            padding:28px;
+            border-radius:10px;
+            width:360px;
+            max-width:90%;
+        }
+        .modal-box h3{
+            margin-bottom:18px;
+            text-align:center;
+        }
+        .modal-box input{
+            width:100%;
+            padding:10px;
+            margin-bottom:12px;
+            border:1px solid #ddd;
+            border-radius:6px;
+            font-size:14px;
+        }
+        .modal-box button[type="submit"]{
+            width:100%;
+            padding:10px;
+            border:none;
+            border-radius:6px;
+            background:#3478f6;
+            color:white;
+            font-size:15px;
+            cursor:pointer;
+        }
+        .modal-box .switch{
+            text-align:center;
+            margin-top:14px;
+            font-size:13px;
+            color:#666;
+        }
+        .modal-box .switch a{
+            color:#3478f6;
+            cursor:pointer;
+            text-decoration:underline;
+        }
+        .modal-box .close{
+            position:absolute;
+            top:12px;
+            right:16px;
+            font-size:22px;
+            cursor:pointer;
+            color:#999;
+        }
     </style>
 </head>
 <body>
+    <div class="auth-bar" id="authBar">
+        <button class="login-btn" onclick="openModal()">登录</button>
+    </div>
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-box" style="position:relative;">
+            <div class="close" onclick="closeModal()">&times;</div>
+            <h3 id="modalTitle">登录</h3>
+            <form id="authForm" onsubmit="handleAuth(event)">
+                <input type="text" id="authUsername" placeholder="用户名" required>
+                <input type="password" id="authPassword" placeholder="密码" required>
+                <input type="email" id="authEmail" placeholder="邮箱（选填）" style="display:none;">
+                <button type="submit" id="authSubmit">登录</button>
+            </form>
+            <div class="switch" id="modalSwitch">
+                还没有账号？<a onclick="switchToRegister()">去注册</a>
+            </div>
+        </div>
+    </div>
     <div class="back" onclick="history.back()"><< 返回列表</div>
     <div id="content"></div>
     <div class="video-block">
@@ -108,7 +220,10 @@
     </div>
     <div class="comment-block">
         <h3>游客评论</h3>
-        <div class="comment-form">
+        <div class="comment-form" id="commentForm">
+            <div id="currentUser" style="display:none;font-size:14px;color:#333;">
+                当前用户：<strong id="currentUserName"></strong>
+            </div>
             <input type="text" id="username" placeholder="你的昵称" maxlength="50">
             <textarea id="commentContent" placeholder="写下你的评论..." maxlength="500"></textarea>
             <button onclick="submitComment()">发表评论</button>
@@ -178,7 +293,8 @@
         }
         // 提交评论
         function submitComment(){
-            const username = document.getElementById("username").value.trim();
+            const user = JSON.parse(localStorage.getItem("user") || "null");
+            const username = user ? user.username : document.getElementById("username").value.trim();
             const content = document.getElementById("commentContent").value.trim();
             if(!username){ alert("请输入昵称"); return; }
             if(!content){ alert("请输入评论内容"); return; }
@@ -198,6 +314,97 @@
             })
         }
         loadComments();
+        updateCommentFormUser();
+
+        // ========== 登录注册 ==========
+        let isRegister = false;
+        updateAuthBar();
+
+        function updateCommentFormUser(){
+            const user = JSON.parse(localStorage.getItem("user") || "null");
+            if(user){
+                document.getElementById("currentUser").style.display = "block";
+                document.getElementById("currentUserName").textContent = user.username;
+                document.getElementById("username").style.display = "none";
+            }else{
+                document.getElementById("currentUser").style.display = "none";
+                document.getElementById("username").style.display = "block";
+            }
+        }
+
+        function updateAuthBar(){
+            const bar = document.getElementById("authBar");
+            const user = JSON.parse(localStorage.getItem("user") || "null");
+            if(user){
+                bar.innerHTML = `
+                    <div class="user-info">
+                        <span>${user.username}</span>
+                        <button onclick="logout()">退出</button>
+                    </div>
+                `;
+            }else{
+                bar.innerHTML = `<button class="login-btn" onclick="openModal()">登录</button>`;
+            }
+        }
+
+        function openModal(){
+            document.getElementById("authModal").classList.add("show");
+        }
+        function closeModal(){
+            document.getElementById("authModal").classList.remove("show");
+        }
+        function switchToRegister(){
+            isRegister = true;
+            document.getElementById("modalTitle").textContent = "注册";
+            document.getElementById("authSubmit").textContent = "注册";
+            document.getElementById("authEmail").style.display = "block";
+            document.getElementById("modalSwitch").innerHTML = `已有账号？<a onclick="switchToLogin()">去登录</a>`;
+        }
+        function switchToLogin(){
+            isRegister = false;
+            document.getElementById("modalTitle").textContent = "登录";
+            document.getElementById("authSubmit").textContent = "登录";
+            document.getElementById("authEmail").style.display = "none";
+            document.getElementById("modalSwitch").innerHTML = `还没有账号？<a onclick="switchToRegister()">去注册</a>`;
+        }
+        function handleAuth(e){
+            e.preventDefault();
+            const username = document.getElementById("authUsername").value.trim();
+            const password = document.getElementById("authPassword").value;
+            const email = document.getElementById("authEmail").value.trim();
+            const url = isRegister ? "/api/register" : "/api/login";
+            const body = isRegister ? {username, password, email} : {username, password};
+            fetch(url, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(body)
+            })
+            .then(res=>res.json())
+            .then(result=>{
+                if(result.code === 200){
+                    if(!isRegister){
+                        localStorage.setItem("user", JSON.stringify(result.data));
+                        updateAuthBar();
+                        updateCommentFormUser();
+                        closeModal();
+                    }else{
+                        alert("注册成功，请登录");
+                        switchToLogin();
+                    }
+                }else{
+                    alert(result.msg || (isRegister ? "注册失败" : "登录失败"));
+                }
+            })
+        }
+        function logout(){
+            localStorage.removeItem("user");
+            updateAuthBar();
+            updateCommentFormUser();
+        }
+        document.getElementById("authModal").addEventListener("click", (e)=>{
+            if(e.target.id === "authModal") closeModal();
+        });
     </script>
 </body>
 </html>
+

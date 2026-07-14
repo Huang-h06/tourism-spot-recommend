@@ -1,11 +1,15 @@
 from flask import Flask, jsonify, request, send_from_directory, render_template
 from flask_cors import CORS
 import os
+import secrets
+from werkzeug.security import check_password_hash
 # import db_sqlite as db
 import db_supabase as db
 
 app = Flask(__name__, static_folder="static")
+app.secret_key = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
 CORS(app)
+
 
 # 获取全部景点，支持按城市、标签模糊筛选
 @app.route("/api/spots", methods=["GET"])
@@ -29,6 +33,47 @@ def recommend_spot():
     tag = request.args.get("tag", "自然风光")
     data = db.recommend_by_tag(tag)
     return jsonify({"code": 200, "recommend": data})
+
+
+# 用户注册
+@app.route("/api/register", methods=["POST"])
+def register():
+    data = request.get_json()
+    username = (data.get("username", "") or "").strip()
+    password = (data.get("password", "") or "").strip()
+    email = (data.get("email", "") or "").strip()
+    if not username:
+        return jsonify({"code": 400, "msg": "请输入用户名"}), 400
+    if not password:
+        return jsonify({"code": 400, "msg": "请输入密码"}), 400
+    if len(username) > 50:
+        return jsonify({"code": 400, "msg": "用户名不超过50字"}), 400
+    if len(password) < 6:
+        return jsonify({"code": 400, "msg": "密码至少6位"}), 400
+    existing = db.get_user_by_username(username)
+    if existing:
+        return jsonify({"code": 400, "msg": "用户名已存在"}), 400
+    db.register_user(username, password, email)
+    return jsonify({"code": 200, "msg": "注册成功"})
+
+
+# 用户登录
+@app.route("/api/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    username = (data.get("username", "") or "").strip()
+    password = (data.get("password", "") or "").strip()
+    if not username or not password:
+        return jsonify({"code": 400, "msg": "请输入用户名和密码"}), 400
+    user = db.get_user_by_username(username)
+    if not user or not check_password_hash(user["password"], password):
+        return jsonify({"code": 401, "msg": "用户名或密码错误"}), 401
+    return jsonify({"code": 200, "msg": "登录成功", "data": {
+        "id": user["id"],
+        "username": user["username"],
+        "email": user["email"]
+    }})
+
 
 # 获取所有视频
 @app.route("/api/videos", methods=["GET"])

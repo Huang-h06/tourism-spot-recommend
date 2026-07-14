@@ -1,3 +1,4 @@
+from werkzeug.security import generate_password_hash, check_password_hash
 from supabase import create_client, Client
 import os
 from dotenv import load_dotenv
@@ -8,6 +9,34 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+
+# 根据用户名查询用户
+def get_user_by_username(username):
+    res = supabase.table("users").select("*").eq("username", username).execute()
+    if len(res.data) == 0:
+        return None
+    return res.data[0]
+
+
+# 根据id查询用户
+
+def get_user_by_id(user_id):
+    res = supabase.table("users").select("id,username,email,created_at").eq("id", user_id).execute()
+    if len(res.data) == 0:
+        return None
+    return res.data[0]
+
+
+# 注册新用户
+def register_user(username, password, email):
+    hashed = generate_password_hash(password)
+    res = supabase.table("users").insert({
+        "username": username,
+        "password": hashed,
+        "email": email
+    }).execute()
+    return res.data
 
 
 # 查询所有景点（支持城市、标签模糊筛选）
