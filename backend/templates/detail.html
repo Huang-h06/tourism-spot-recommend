@@ -37,6 +37,66 @@
             width:100%;
             border-radius:6px;
         }
+        .comment-block{
+            margin-top:35px;
+            padding-top:20px;
+            border-top:1px solid #e0e0e0;
+        }
+        .comment-block h3{
+            margin-bottom:15px;
+        }
+        .comment-form{
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+            margin-bottom:20px;
+        }
+        .comment-form input, .comment-form textarea{
+            padding:10px;
+            border:1px solid #ddd;
+            border-radius:6px;
+            font-size:14px;
+        }
+        .comment-form textarea{
+            resize:vertical;
+            min-height:80px;
+        }
+        .comment-form button{
+            align-self:flex-start;
+            padding:10px 22px;
+            border:none;
+            border-radius:6px;
+            background:#3478f6;
+            color:white;
+            cursor:pointer;
+            font-size:14px;
+        }
+        .comment-list{
+            display:flex;
+            flex-direction:column;
+            gap:14px;
+        }
+        .comment-item{
+            background:#f8f9fa;
+            padding:12px 15px;
+            border-radius:8px;
+        }
+        .comment-header{
+            display:flex;
+            justify-content:space-between;
+            margin-bottom:6px;
+            font-size:13px;
+            color:#666;
+        }
+        .comment-user{
+            font-weight:bold;
+            color:#333;
+        }
+        .comment-content{
+            font-size:14px;
+            line-height:1.6;
+            color:#444;
+        }
     </style>
 </head>
 <body>
@@ -45,6 +105,15 @@
     <div class="video-block">
         <h3>相关景点视频</h3>
         <div id="videoList"></div>
+    </div>
+    <div class="comment-block">
+        <h3>游客评论</h3>
+        <div class="comment-form">
+            <input type="text" id="username" placeholder="你的昵称" maxlength="50">
+            <textarea id="commentContent" placeholder="写下你的评论..." maxlength="500"></textarea>
+            <button onclick="submitComment()">发表评论</button>
+        </div>
+        <div class="comment-list" id="commentList"></div>
     </div>
     <script>
         // 中文名与图片文件名映射
@@ -85,6 +154,50 @@
                 `
             })
         })
+        // 加载评论
+        function loadComments(){
+            fetch(`/api/spots/${sid}/comments`)
+            .then(res=>res.json())
+            .then(result=>{
+                const listBox = document.getElementById("commentList");
+                const data = result.data || [];
+                if(data.length === 0){
+                    listBox.innerHTML = "<p>暂无评论，快来发表第一条吧~</p>";
+                    return;
+                }
+                listBox.innerHTML = data.map(c=>`
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="comment-user">${c.username}</span>
+                            <span>${new Date(c.created_at).toLocaleString()}</span>
+                        </div>
+                        <div class="comment-content">${c.content}</div>
+                    </div>
+                `).join("");
+            })
+        }
+        // 提交评论
+        function submitComment(){
+            const username = document.getElementById("username").value.trim();
+            const content = document.getElementById("commentContent").value.trim();
+            if(!username){ alert("请输入昵称"); return; }
+            if(!content){ alert("请输入评论内容"); return; }
+            fetch(`/api/spots/${sid}/comments`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({username, content})
+            })
+            .then(res=>res.json())
+            .then(result=>{
+                if(result.code === 200){
+                    document.getElementById("commentContent").value = "";
+                    loadComments();
+                }else{
+                    alert(result.msg || "评论失败");
+                }
+            })
+        }
+        loadComments();
     </script>
 </body>
 </html>

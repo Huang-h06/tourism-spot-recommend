@@ -53,6 +53,37 @@ def get_video_detail(video_id):
         return jsonify({"code": 404, "msg": "视频不存在"}), 404
     return jsonify({"code": 200, "data": video})
 
+# 获取景点评论列表
+@app.route("/api/spots/<int:spot_id>/comments", methods=["GET"])
+def get_spot_comments(spot_id):
+    spot = db.get_spot_by_id(spot_id)
+    if not spot:
+        return jsonify({"code": 404, "msg": "景点不存在"}), 404
+    comments = db.get_comments_by_spot(spot_id)
+    return jsonify({"code": 200, "data": comments})
+
+
+# 提交景点评论
+@app.route("/api/spots/<int:spot_id>/comments", methods=["POST"])
+def post_spot_comment(spot_id):
+    spot = db.get_spot_by_id(spot_id)
+    if not spot:
+        return jsonify({"code": 404, "msg": "景点不存在"}), 404
+    data = request.get_json()
+    username = (data.get("username", "") or "").strip()
+    content = (data.get("content", "") or "").strip()
+    if not username:
+        return jsonify({"code": 400, "msg": "请输入昵称"}), 400
+    if not content:
+        return jsonify({"code": 400, "msg": "请输入评论内容"}), 400
+    if len(username) > 50:
+        return jsonify({"code": 400, "msg": "昵称不超过50字"}), 400
+    if len(content) > 500:
+        return jsonify({"code": 400, "msg": "评论内容不超过500字"}), 400
+    comment = db.add_comment(spot_id, username, content)
+    return jsonify({"code": 200, "data": comment, "msg": "评论成功"})
+
+
 # 全局异常捕获
 @app.errorhandler(Exception)
 def err_handler(e):

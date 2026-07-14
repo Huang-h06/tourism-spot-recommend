@@ -16,8 +16,9 @@
         h1{
             text-align: center;
             color:#222;
-            margin-bottom: 40px;
+            margin-bottom: 25px;
         }
+
         .container{
             max-width: 1200px;
             margin: 0 auto;
@@ -83,6 +84,7 @@
 </head>
 <body>
     <h1>热门旅游景点推荐</h1>
+
     <div class="search-box">
         <input type="text" id="cityInput" placeholder="输入城市筛选">
         <input type="text" id="tagInput" placeholder="输入标签筛选，例如：自然风光">
@@ -93,7 +95,9 @@
 
     <script>
         // 中文名与图片文件名映射
-        const imgMap = {"西湖":"xihu","故宫":"gugong","张家界":"zhangjiajie","鼓浪屿":"gulangyu","丽江":"lijiang","西藏":"xizang","新疆":"xinjiang"};
+        const imgMap = {"西湖":"xihu","故宫":"gugong","张家界":"zhangjiajie","鼓浪屿":"gulangyu","丽江":"lijiang","西藏":"xizang","新疆":"xinjiang","成都":"chengdu","重庆":"chongqing","青岛":"qingdao"};
+
+
 
         function loadData(city="",tag=""){
             let url = `/api/spots?city=${city}&tag=${tag}`

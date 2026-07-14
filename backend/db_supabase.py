@@ -35,6 +35,22 @@ def recommend_by_tag(tag):
     return res.data
 
 
+# 根据景点ID获取评论列表（按时间倒序）
+def get_comments_by_spot(spot_id):
+    res = supabase.table("comments").select("*").eq("spot_id", spot_id).order("created_at", desc=True).execute()
+    return res.data
+
+
+# 新增评论
+def add_comment(spot_id, username, content):
+    res = supabase.table("comments").insert({
+        "spot_id": spot_id,
+        "username": username,
+        "content": content
+    }).execute()
+    return res.data
+
+
 # 获取所有视频
 def get_all_videos():
     res = supabase.table("videos").select("*").order("id").execute()
