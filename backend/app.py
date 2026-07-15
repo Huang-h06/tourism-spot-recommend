@@ -91,6 +91,38 @@ def get_spot_videos(spot_id):
     videos = db.get_videos_by_spot(spot_id)
     return jsonify({"code": 200, "data": videos, "spot": spot["name"]})
 
+# 美食图片映射：景点名 -> 美食图片前缀
+FOOD_IMG_MAP = {
+    "西湖": "hangzhou", "故宫": "beijing", "张家界": "zhangjiajie",
+    "鼓浪屿": "xiamen", "丽江": "lijiang", "西藏": "xizang",
+    "新疆": "xinjiang", "成都": "chengdu", "重庆": "chongqing",
+    "青岛": "qingdao", "上海": "shanghai", "南京": "nanjing"
+}
+
+# 根据景点ID获取美食图片列表
+@app.route("/api/spots/<int:spot_id>/foods", methods=["GET"])
+def get_spot_foods(spot_id):
+    spot = db.get_spot_by_id(spot_id)
+    if not spot:
+        return jsonify({"code": 404, "msg": "景点不存在"}), 404
+    prefix = FOOD_IMG_MAP.get(spot["name"])
+    if not prefix:
+        return jsonify({"code": 200, "data": []})
+    # 读取 static/images/foods 目录下匹配前缀的图片
+    foods_dir = os.path.join(app.static_folder, "images", "foods")
+    images = []
+    if os.path.isdir(foods_dir):
+        for fname in sorted(os.listdir(foods_dir)):
+            if fname.lower().startswith(prefix.lower()) and (
+                fname.lower().endswith(".jpg") or
+                fname.lower().endswith(".jpeg") or
+                fname.lower().endswith(".png") or
+                fname.lower().endswith(".webp")
+            ):
+                images.append({"url": f"/static/images/foods/{fname}"})
+    return jsonify({"code": 200, "data": images, "spot": spot["name"]})
+
+
 # 根据视频ID获取视频详情
 @app.route("/api/videos/<int:video_id>", methods=["GET"])
 def get_video_detail(video_id):

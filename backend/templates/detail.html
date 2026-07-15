@@ -45,6 +45,32 @@
         .comment-block h3{
             margin-bottom:15px;
         }
+        .food-block{
+            margin-top:35px;
+            padding-top:20px;
+            border-top:1px solid #e0e0e0;
+        }
+        .food-block h3{
+            margin-bottom:15px;
+        }
+        #foodList{
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap:14px;
+            margin-top:12px;
+        }
+        #foodList img{
+            width:100%;
+            height:160px;
+            object-fit:cover;
+            border-radius:8px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.08);
+            transition:transform 0.2s;
+            cursor:pointer;
+        }
+        #foodList img:hover{
+            transform:scale(1.03);
+        }
         .comment-form{
             display:flex;
             flex-direction:column;
@@ -240,6 +266,10 @@
         <h3>相关景点视频</h3>
         <div id="videoList"></div>
     </div>
+    <div class="food-block">
+        <h3>城市美食</h3>
+        <div id="foodList"></div>
+    </div>
     <div class="comment-block">
         <h3>游客评论</h3>
         <div class="comment-form" id="commentForm">
@@ -348,7 +378,22 @@
                 `
             })
         })
+        // 加载美食图片
+        fetch(`/api/spots/${sid}/foods`)
+        .then(res=>res.json())
+        .then(foodRes=>{
+            const fBox = document.getElementById("foodList");
+            if(!foodRes.data || foodRes.data.length === 0){
+                fBox.innerHTML = "<p>暂无相关美食图片</p>";
+                return;
+            }
+            fBox.innerHTML = foodRes.data.map(f=>`
+                <img src="${f.url}" alt="城市美食" onclick="window.open('${f.url}','_blank')">
+            `).join("");
+        })
+
         // 加载评论
+
         function loadComments(){
             fetch(`/api/spots/${sid}/comments`)
             .then(res=>res.json())
