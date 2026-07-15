@@ -71,7 +71,40 @@
         #foodList img:hover{
             transform:scale(1.03);
         }
+        .food-lightbox{
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:rgba(0,0,0,0.85);
+            display:none;
+            justify-content:center;
+            align-items:center;
+            z-index:300;
+            padding:40px;
+        }
+        .food-lightbox.show{
+            display:flex;
+        }
+        .food-lightbox img{
+            max-width:100%;
+            max-height:100%;
+            object-fit:contain;
+            border-radius:8px;
+            box-shadow:0 4px 20px rgba(0,0,0,0.4);
+        }
+        .food-lightbox .close-btn{
+            position:absolute;
+            top:20px;
+            right:30px;
+            font-size:36px;
+            color:#fff;
+            cursor:pointer;
+            text-shadow:0 2px 6px rgba(0,0,0,0.5);
+        }
         .comment-form{
+
             display:flex;
             flex-direction:column;
             gap:10px;
@@ -270,6 +303,10 @@
         <h3>城市美食</h3>
         <div id="foodList"></div>
     </div>
+    <div class="food-lightbox" id="foodLightbox" onclick="closeFoodLightbox(event)">
+        <span class="close-btn">&times;</span>
+        <img src="" alt="城市美食" id="foodLightboxImg">
+    </div>
     <div class="comment-block">
         <h3>游客评论</h3>
         <div class="comment-form" id="commentForm">
@@ -387,12 +424,30 @@
                 fBox.innerHTML = "<p>暂无相关美食图片</p>";
                 return;
             }
-            fBox.innerHTML = foodRes.data.map(f=>`
-                <img src="${f.url}" alt="城市美食" onclick="window.open('${f.url}','_blank')">
+            fBox.innerHTML = foodRes.data.map((f,idx)=>`
+                <img src="${f.url}" alt="城市美食" onclick="openFoodLightbox('${f.url}')">
             `).join("");
         })
 
+        // 美食图片灯箱
+        function openFoodLightbox(url){
+            const box = document.getElementById("foodLightbox");
+            document.getElementById("foodLightboxImg").src = url;
+            box.classList.add("show");
+        }
+        function closeFoodLightbox(e){
+            if(e && e.target && (e.target.id === "foodLightbox" || e.target.classList.contains("close-btn"))){
+                document.getElementById("foodLightbox").classList.remove("show");
+            }
+        }
+        document.addEventListener("keydown", (e)=>{
+            if(e.key === "Escape"){
+                document.getElementById("foodLightbox").classList.remove("show");
+            }
+        });
+
         // 加载评论
+
 
         function loadComments(){
             fetch(`/api/spots/${sid}/comments`)
