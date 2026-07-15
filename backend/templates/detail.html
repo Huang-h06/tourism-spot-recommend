@@ -15,18 +15,64 @@
             object-fit:cover;
             border-radius:8px;
         }
-        .info{
-            margin-top:20px;
-        }
+        .info{ margin-top:20px; }
         .back{
             display:inline-block;
             margin-bottom:20px;
             color:#0066cc;
             cursor:pointer;
         }
-        .video-block{
-            margin-top:30px;
+
+        /* 评分区 */
+        .rating-summary{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            margin:12px 0;
+            padding:12px 16px;
+            background:#fffbf0;
+            border-radius:8px;
+            border:1px solid #ffe58f;
         }
+        .rating-big{
+            font-size:36px;
+            font-weight:bold;
+            color:#f5a623;
+        }
+        .rating-stars{ font-size:20px; }
+        .rating-count{ color:#888; font-size:14px; }
+
+        /* 攻略区 */
+        .tips-block{
+            margin-top:25px;
+            padding:18px 20px;
+            background:#f0f7ff;
+            border-radius:10px;
+            border-left:4px solid #3478f6;
+        }
+        .tips-block h3{
+            margin-bottom:12px;
+            color:#1a5cb5;
+        }
+        .tips-grid{
+            display:grid;
+            grid-template-columns: repeat(2,1fr);
+            gap:10px;
+        }
+        .tip-item{
+            font-size:14px;
+            line-height:1.7;
+        }
+        .tip-item .tip-label{
+            color:#888;
+            margin-right:6px;
+        }
+        .tip-item .tip-value{
+            color:#333;
+            font-weight:500;
+        }
+
+        .video-block{ margin-top:30px; }
         #videoList{
             display: grid;
             grid-template-columns: repeat(2,1fr);
@@ -42,17 +88,13 @@
             padding-top:20px;
             border-top:1px solid #e0e0e0;
         }
-        .comment-block h3{
-            margin-bottom:15px;
-        }
+        .comment-block h3{ margin-bottom:15px; }
         .food-block{
             margin-top:35px;
             padding-top:20px;
             border-top:1px solid #e0e0e0;
         }
-        .food-block h3{
-            margin-bottom:15px;
-        }
+        .food-block h3{ margin-bottom:15px; }
         #foodList{
             display: grid;
             grid-template-columns: repeat(3,1fr);
@@ -68,15 +110,11 @@
             transition:transform 0.2s;
             cursor:pointer;
         }
-        #foodList img:hover{
-            transform:scale(1.03);
-        }
+        #foodList img:hover{ transform:scale(1.03); }
         .food-lightbox{
             position:fixed;
-            top:0;
-            left:0;
-            width:100%;
-            height:100%;
+            top:0; left:0;
+            width:100%; height:100%;
             background:rgba(0,0,0,0.85);
             display:none;
             justify-content:center;
@@ -84,9 +122,7 @@
             z-index:300;
             padding:40px;
         }
-        .food-lightbox.show{
-            display:flex;
-        }
+        .food-lightbox.show{ display:flex; }
         .food-lightbox img{
             max-width:100%;
             max-height:100%;
@@ -96,10 +132,8 @@
         }
         .food-lightbox .close-btn{
             position:fixed;
-            top:16px;
-            right:24px;
-            width:42px;
-            height:42px;
+            top:16px; right:24px;
+            width:42px; height:42px;
             line-height:42px;
             text-align:center;
             font-size:32px;
@@ -111,12 +145,30 @@
             text-shadow:0 2px 6px rgba(0,0,0,0.5);
             user-select:none;
         }
-        .food-lightbox .close-btn:hover{
-            background:rgba(0,0,0,0.7);
+        .food-lightbox .close-btn:hover{ background:rgba(0,0,0,0.7); }
+
+        /* 星级选择器 */
+        .star-selector{
+            display:flex;
+            gap:4px;
+            align-items:center;
+            margin-bottom:4px;
         }
+        .star-selector .star{
+            font-size:24px;
+            cursor:pointer;
+            color:#ddd;
+            transition:color 0.15s;
+            user-select:none;
+        }
+        .star-selector .star.active{ color:#f5a623; }
+        .star-selector .star-label{
+            font-size:13px;
+            color:#888;
+            margin-left:8px;
+        }
+
         .comment-form{
-
-
             display:flex;
             flex-direction:column;
             gap:10px;
@@ -131,6 +183,12 @@
         .comment-form textarea{
             resize:vertical;
             min-height:80px;
+        }
+        .comment-form .char-count{
+            font-size:12px;
+            color:#aaa;
+            text-align:right;
+            margin-top:-6px;
         }
         .comment-form button{
             align-self:flex-start;
@@ -151,10 +209,12 @@
             background:#f8f9fa;
             padding:12px 15px;
             border-radius:8px;
+            position:relative;
         }
         .comment-header{
             display:flex;
             justify-content:space-between;
+            align-items:center;
             margin-bottom:6px;
             font-size:13px;
             color:#666;
@@ -162,16 +222,51 @@
         .comment-user{
             font-weight:bold;
             color:#333;
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
+        .comment-user .user-stars{
+            font-size:13px;
         }
         .comment-content{
             font-size:14px;
             line-height:1.6;
             color:#444;
         }
+        .comment-actions{
+            display:flex;
+            gap:14px;
+            margin-top:8px;
+            font-size:13px;
+        }
+        .comment-actions .like-btn{
+            color:#888;
+            cursor:pointer;
+            background:none;
+            border:none;
+            font-size:13px;
+            padding:2px 0;
+        }
+        .comment-actions .like-btn:hover{ color:#ff4d4f; }
+        .comment-actions .like-btn.liked{ color:#ff4d4f; font-weight:bold; }
+        .comment-actions .del-btn{
+            color:#ccc;
+            cursor:pointer;
+            background:none;
+            border:none;
+            font-size:13px;
+            padding:2px 0;
+        }
+        .comment-actions .del-btn:hover{ color:#ff4d4f; }
+        .comment-time{
+            font-size:12px;
+            color:#bbb;
+        }
+
         .auth-bar{
             position:fixed;
-            top:20px;
-            right:30px;
+            top:20px; right:30px;
             z-index:100;
         }
         .auth-bar button{
@@ -181,10 +276,7 @@
             cursor:pointer;
             font-size:14px;
         }
-        .login-btn{
-            background:#3478f6;
-            color:white;
-        }
+        .login-btn{ background:#3478f6; color:white; }
         .user-info{
             display:flex;
             align-items:center;
@@ -195,10 +287,7 @@
             box-shadow:0 2px 8px #00000012;
             font-size:14px;
         }
-        .user-info button{
-            background:#ff4d4f;
-            color:white;
-        }
+        .user-info button{ background:#ff4d4f; color:white; }
         .profile-link{
             color:#3478f6;
             cursor:pointer;
@@ -222,19 +311,15 @@
         .fav-btn-big.fav-active{ background:#ff4d4f; color:white; }
         .modal-overlay{
             position:fixed;
-            top:0;
-            left:0;
-            width:100%;
-            height:100%;
+            top:0; left:0;
+            width:100%; height:100%;
             background:#00000050;
             display:none;
             justify-content:center;
             align-items:center;
             z-index:200;
         }
-        .modal-overlay.show{
-            display:flex;
-        }
+        .modal-overlay.show{ display:flex; }
         .modal-box{
             background:#fff;
             padding:28px;
@@ -242,10 +327,7 @@
             width:360px;
             max-width:90%;
         }
-        .modal-box h3{
-            margin-bottom:18px;
-            text-align:center;
-        }
+        .modal-box h3{ margin-bottom:18px; text-align:center; }
         .modal-box input{
             width:100%;
             padding:10px;
@@ -277,11 +359,16 @@
         }
         .modal-box .close{
             position:absolute;
-            top:12px;
-            right:16px;
+            top:12px; right:16px;
             font-size:22px;
             cursor:pointer;
             color:#999;
+        }
+
+        @media (max-width:600px){
+            .tips-grid{ grid-template-columns: 1fr; }
+            #foodList{ grid-template-columns: repeat(2,1fr); }
+            #videoList{ grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -307,10 +394,20 @@
     <div class="back" onclick="history.back()">&lt;&lt; 返回列表</div>
     <div class="fav-bar" id="favBar"></div>
     <div id="content"></div>
+
+    <!-- 游玩攻略 -->
+    <div class="tips-block" id="tipsBlock" style="display:none;">
+        <h3>📋 游玩攻略 / 小贴士</h3>
+        <div class="tips-grid" id="tipsGrid"></div>
+    </div>
+
+    <!-- 视频 -->
     <div class="video-block">
         <h3>相关景点视频</h3>
         <div id="videoList"></div>
     </div>
+
+    <!-- 美食 -->
     <div class="food-block">
         <h3>城市美食</h3>
         <div id="foodList"></div>
@@ -319,27 +416,43 @@
         <span class="close-btn">&times;</span>
         <img src="" alt="城市美食" id="foodLightboxImg">
     </div>
+
+    <!-- 评论 -->
     <div class="comment-block">
         <h3>游客评论</h3>
         <div class="comment-form" id="commentForm">
             <div id="currentUser" style="display:none;font-size:14px;color:#333;">
                 当前用户：<strong id="currentUserName"></strong>
             </div>
+
+            <!-- 星级选择 -->
+            <div class="star-selector" id="starSelector">
+                <span style="font-size:14px;color:#666;margin-right:6px;">评分：</span>
+                <span class="star" data-v="1">☆</span>
+                <span class="star" data-v="2">☆</span>
+                <span class="star" data-v="3">☆</span>
+                <span class="star" data-v="4">☆</span>
+                <span class="star" data-v="5">☆</span>
+                <span class="star-label" id="starLabel">点击选择评分</span>
+            </div>
+            <input type="hidden" id="commentRating" value="5">
+
             <input type="text" id="username" placeholder="你的昵称" maxlength="50">
-            <textarea id="commentContent" placeholder="写下你的评论..." maxlength="500"></textarea>
+            <textarea id="commentContent" placeholder="写下你的评论..." maxlength="500" oninput="updateCharCount()"></textarea>
+            <div class="char-count"><span id="charCount">0</span>/500</div>
             <button onclick="submitComment()">发表评论</button>
         </div>
         <div class="comment-list" id="commentList"></div>
     </div>
+
     <script>
-        // 中文名与图片文件名映射
         const imgMap = {"西湖":"xihu","故宫":"gugong","张家界":"zhangjiajie","鼓浪屿":"gulangyu","丽江":"lijiang","西藏":"xizang","新疆":"xinjiang","成都":"chengdu","重庆":"chongqing","青岛":"qingdao","上海":"shanghai","南京":"nanjing"};
-        // 获取地址栏id
         const params = new URLSearchParams(location.search);
         const sid = params.get("id");
-
-        // 记录浏览
         const user = JSON.parse(localStorage.getItem("user") || "null");
+        let currentRating = 5;
+
+        // 浏览记录
         if(user && sid){
             fetch("/api/history", {
                 method:"POST",
@@ -348,26 +461,77 @@
             });
         }
 
+        // 格式化时间
+        function formatTime(dateStr){
+            if(!dateStr) return '';
+            const d = new Date(dateStr);
+            const now = new Date();
+            const diff = now - d;
+            if(diff < 60000) return '刚刚';
+            if(diff < 3600000) return Math.floor(diff/60000) + '分钟前';
+            if(diff < 86400000) return Math.floor(diff/3600000) + '小时前';
+            if(diff < 604800000) return Math.floor(diff/86400000) + '天前';
+            return d.toLocaleDateString('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit'});
+        }
+
+        // 渲染星级
+        function renderStars(rating, size){
+            size = size || 16;
+            const full = Math.floor(rating);
+            let s = '';
+            for(let i=0;i<full;i++) s += '★';
+            for(let i=full;i<5;i++) s += '☆';
+            return `<span style="color:#f5a623;font-size:${size}px;">${s}</span>`;
+        }
+
+        // 加载景点详情
         fetch(`/api/spots/${sid}`)
         .then(res=>res.json())
         .then(result=>{
             let item = result.data;
+            // 星级展示
+            let starHtml = '';
+            if(item.avg_rating && item.avg_rating > 0){
+                starHtml = `
+                    <div class="rating-summary">
+                        <div class="rating-big">${item.avg_rating}</div>
+                        <div>
+                            <div class="rating-stars">${renderStars(item.avg_rating, 20)}</div>
+                            <div class="rating-count">${item.rating_count || 0} 条评价</div>
+                        </div>
+                    </div>`;
+            }
+
             let html = `
                 <img src="static/images/${imgMap[item.name]}.jpg">
                 <div class="info">
                     <h2>${item.name}</h2>
+                    ${starHtml}
                     <p>城市：${item.city}</p>
                     <p>等级：${item.level}</p>
                     <p>标签：${item.tag}</p>
-                    <p style="margin-top:15px;line-height:1.7;">简介：${item.desc}</p>
+                    <p style="margin-top:15px;line-height:1.7;">简介：${item.desc || ''}</p>
                 </div>
-            `
+            `;
             document.getElementById("content").innerHTML = html;
-            // 加载收藏按钮
-            loadFavBtn();
-        })
 
-        // 收藏按钮
+            // 攻略
+            const tips = [];
+            if(item.best_season) tips.push({label:'最佳季节',value:item.best_season});
+            if(item.duration) tips.push({label:'建议时长',value:item.duration});
+            if(item.ticket) tips.push({label:'门票价格',value:item.ticket});
+            if(item.open_time) tips.push({label:'开放时间',value:item.open_time});
+            if(item.transport) tips.push({label:'交通方式',value:item.transport});
+            if(tips.length > 0){
+                document.getElementById("tipsBlock").style.display = 'block';
+                document.getElementById("tipsGrid").innerHTML = tips.map(t=>
+                    `<div class="tip-item"><span class="tip-label">${t.label}：</span><span class="tip-value">${t.value}</span></div>`
+                ).join('');
+            }
+
+            loadFavBtn();
+        });
+
         function loadFavBtn(){
             if(!user) return;
             const favBar = document.getElementById("favBar");
@@ -389,10 +553,7 @@
                 fetch(`/api/favorites?user_id=${user.id}&spot_id=${sid}`, {method:"DELETE"})
                 .then(res=>res.json())
                 .then(r=>{
-                    if(r.code===200){
-                        btn.textContent="🤍 收藏";
-                        btn.classList.remove("fav-active");
-                    }
+                    if(r.code===200){ btn.textContent="🤍 收藏"; btn.classList.remove("fav-active"); }
                 });
             }else{
                 fetch("/api/favorites", {
@@ -402,15 +563,12 @@
                 })
                 .then(res=>res.json())
                 .then(r=>{
-                    if(r.code===200){
-                        btn.textContent="❤️ 已收藏";
-                        btn.classList.add("fav-active");
-                    }
+                    if(r.code===200){ btn.textContent="❤️ 已收藏"; btn.classList.add("fav-active"); }
                 });
             }
         }
 
-        // 加载关联视频
+        // 视频
         fetch(`/api/spots/${sid}/videos`)
         .then(res=>res.json())
         .then(videoRes=>{
@@ -420,14 +578,11 @@
                 return;
             }
             videoRes.data.forEach(v=>{
-                vBox.innerHTML += `
-                    <video controls preload="none">
-                        <source src="${v.url}" type="video/mp4">
-                    </video>
-                `
-            })
-        })
-        // 加载美食图片
+                vBox.innerHTML += `<video controls preload="none"><source src="${v.url}" type="video/mp4"></video>`;
+            });
+        });
+
+        // 美食
         fetch(`/api/spots/${sid}/foods`)
         .then(res=>res.json())
         .then(foodRes=>{
@@ -436,16 +591,14 @@
                 fBox.innerHTML = "<p>暂无相关美食图片</p>";
                 return;
             }
-            fBox.innerHTML = foodRes.data.map((f,idx)=>`
-                <img src="${f.url}" alt="城市美食" onclick="openFoodLightbox('${f.url}')">
-            `).join("");
-        })
+            fBox.innerHTML = foodRes.data.map(f=>
+                `<img src="${f.url}" alt="城市美食" onclick="openFoodLightbox('${f.url}')">`
+            ).join("");
+        });
 
-        // 美食图片灯箱
         function openFoodLightbox(url){
-            const box = document.getElementById("foodLightbox");
             document.getElementById("foodLightboxImg").src = url;
-            box.classList.add("show");
+            document.getElementById("foodLightbox").classList.add("show");
         }
         function closeFoodLightbox(e){
             if(e && e.target && (e.target.id === "foodLightbox" || e.target.classList.contains("close-btn"))){
@@ -453,14 +606,41 @@
             }
         }
         document.addEventListener("keydown", (e)=>{
-            if(e.key === "Escape"){
-                document.getElementById("foodLightbox").classList.remove("show");
-            }
+            if(e.key === "Escape") document.getElementById("foodLightbox").classList.remove("show");
         });
 
-        // 加载评论
+        // ========== 星级选择器 ==========
+        const starEls = document.querySelectorAll("#starSelector .star");
+        starEls.forEach(star=>{
+            star.addEventListener("click", function(){
+                currentRating = parseInt(this.dataset.v);
+                document.getElementById("commentRating").value = currentRating;
+                updateStarDisplay();
+            });
+            star.addEventListener("mouseenter", function(){
+                const v = parseInt(this.dataset.v);
+                starEls.forEach((s,i)=>{ s.textContent = i < v ? '★' : '☆'; s.classList.toggle('active', i < v); });
+            });
+        });
+        document.getElementById("starSelector").addEventListener("mouseleave", updateStarDisplay);
 
+        function updateStarDisplay(){
+            starEls.forEach((s,i)=>{
+                s.textContent = i < currentRating ? '★' : '☆';
+                s.classList.toggle('active', i < currentRating);
+            });
+            const labels = ['','很差','较差','一般','推荐','超赞'];
+            document.getElementById("starLabel").textContent = labels[currentRating] || '';
+        }
+        updateStarDisplay();
 
+        function updateCharCount(){
+            const len = document.getElementById("commentContent").value.length;
+            document.getElementById("charCount").textContent = len;
+            document.getElementById("charCount").style.color = len > 450 ? '#ff4d4f' : '#aaa';
+        }
+
+        // ========== 评论 ==========
         function loadComments(){
             fetch(`/api/spots/${sid}/comments`)
             .then(res=>res.json())
@@ -468,29 +648,45 @@
                 const listBox = document.getElementById("commentList");
                 const data = result.data || [];
                 if(data.length === 0){
-                    listBox.innerHTML = "<p>暂无评论，快来发表第一条吧~</p>";
+                    listBox.innerHTML = "<p style='color:#999;text-align:center;padding:30px;'>暂无评论，快来发表第一条吧~</p>";
                     return;
                 }
-                listBox.innerHTML = data.map(c=>`
-                    <div class="comment-item">
-                        <div class="comment-header">
-                            <span class="comment-user">${c.username}</span>
-                            <span>${new Date(c.created_at).toLocaleString()}</span>
+                listBox.innerHTML = data.map(c=>{
+                    const rating = c.rating || 5;
+                    const starHtml = renderStars(rating, 13);
+                    const isMine = user && c.user_id === user.id;
+                    const likes = c.likes || 0;
+                    return `
+                        <div class="comment-item" data-cid="${c.id}">
+                            <div class="comment-header">
+                                <span class="comment-user">
+                                    ${c.username}
+                                    <span class="user-stars">${starHtml}</span>
+                                </span>
+                                <span class="comment-time">${formatTime(c.created_at)}</span>
+                            </div>
+                            <div class="comment-content">${c.content}</div>
+                            <div class="comment-actions">
+                                <button class="like-btn" onclick="likeComment(${c.id},this)">👍 <span>${likes}</span></button>
+                                ${isMine ? `<button class="del-btn" onclick="delComment(${c.id},this)">删除</button>` : ''}
+                            </div>
                         </div>
-                        <div class="comment-content">${c.content}</div>
-                    </div>
-                `).join("");
-            })
+                    `;
+                }).join("");
+            });
         }
-        // 提交评论
+
         function submitComment(){
-            const user = JSON.parse(localStorage.getItem("user") || "null");
-            const username = user ? user.username : document.getElementById("username").value.trim();
+            const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+            const username = currentUser ? currentUser.username : document.getElementById("username").value.trim();
             const content = document.getElementById("commentContent").value.trim();
+            const rating = parseInt(document.getElementById("commentRating").value);
             if(!username){ alert("请输入昵称"); return; }
             if(!content){ alert("请输入评论内容"); return; }
-            const body = {username, content};
-            if(user) body.user_id = user.id;
+            if(content.length < 2){ alert("评论内容不能少于2个字"); return; }
+            if(content.length > 500){ alert("评论内容不能超过500字"); return; }
+            const body = {username, content, rating};
+            if(currentUser) body.user_id = currentUser.id;
             fetch(`/api/spots/${sid}/comments`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
@@ -500,18 +696,52 @@
             .then(result=>{
                 if(result.code === 200){
                     document.getElementById("commentContent").value = "";
+                    updateCharCount();
+                    currentRating = 5;
+                    document.getElementById("commentRating").value = 5;
+                    updateStarDisplay();
                     loadComments();
+                    // 刷新页面以更新评分
+                    setTimeout(()=>location.reload(), 500);
                 }else{
                     alert(result.msg || "评论失败");
                 }
-            })
+            });
         }
+
+        function likeComment(cid, btn){
+            fetch(`/api/comments/${cid}/like`, {method:"POST",headers:{"Content-Type":"application/json"}})
+            .then(res=>res.json())
+            .then(r=>{
+                if(r.code === 200){
+                    btn.querySelector("span").textContent = r.data.likes;
+                    btn.classList.add("liked");
+                    btn.style.pointerEvents = "none";
+                }
+            });
+        }
+
+        function delComment(cid, btn){
+            if(!confirm("确定要删除这条评论吗？")) return;
+            const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+            fetch(`/api/comments/${cid}`, {
+                method:"DELETE",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({user_id: currentUser ? currentUser.id : null})
+            })
+            .then(res=>res.json())
+            .then(r=>{
+                if(r.code === 200){
+                    btn.closest(".comment-item").remove();
+                    setTimeout(()=>location.reload(), 500);
+                }else{
+                    alert(r.msg || "删除失败");
+                }
+            });
+        }
+
         loadComments();
         updateCommentFormUser();
-
-        // ========== 登录注册 ==========
-        let isRegister = false;
-        updateAuthBar();
 
         function updateCommentFormUser(){
             const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -524,6 +754,10 @@
                 document.getElementById("username").style.display = "block";
             }
         }
+
+        // ========== 登录注册 ==========
+        let isRegister = false;
+        updateAuthBar();
 
         function updateAuthBar(){
             const bar = document.getElementById("authBar");
@@ -539,13 +773,8 @@
                 bar.innerHTML = `<button class="login-btn" onclick="openModal()">登录</button>`;
             }
         }
-
-        function openModal(){
-            document.getElementById("authModal").classList.add("show");
-        }
-        function closeModal(){
-            document.getElementById("authModal").classList.remove("show");
-        }
+        function openModal(){ document.getElementById("authModal").classList.add("show"); }
+        function closeModal(){ document.getElementById("authModal").classList.remove("show"); }
         function switchToRegister(){
             isRegister = true;
             document.getElementById("modalTitle").textContent = "注册";
@@ -580,6 +809,7 @@
                         updateAuthBar();
                         updateCommentFormUser();
                         loadFavBtn();
+                        loadComments();
                         closeModal();
                     }else{
                         alert("注册成功，请登录");
@@ -588,12 +818,13 @@
                 }else{
                     alert(result.msg || (isRegister ? "注册失败" : "登录失败"));
                 }
-            })
+            });
         }
         function logout(){
             localStorage.removeItem("user");
             updateAuthBar();
             updateCommentFormUser();
+            loadComments();
         }
         document.getElementById("authModal").addEventListener("click", (e)=>{
             if(e.target.id === "authModal") closeModal();
@@ -601,4 +832,3 @@
     </script>
 </body>
 </html>
-

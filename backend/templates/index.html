@@ -4,19 +4,103 @@
     <meta charset="UTF-8">
     <title>旅游景点推荐系统</title>
     <style>
-        *{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        *{ margin: 0; padding: 0; box-sizing: border-box; }
         body{
             background-color: #f5f7fa;
-            padding: 30px;
+            padding: 0 0 30px;
         }
+
+        /* ===== 轮播 Banner ===== */
+        .banner-wrap{
+            width:100%;
+            height:360px;
+            position:relative;
+            overflow:hidden;
+            margin-bottom:30px;
+        }
+        .banner-slide{
+            width:100%;
+            height:100%;
+            position:absolute;
+            top:0; left:0;
+            opacity:0;
+            transition:opacity 0.8s ease;
+            cursor:pointer;
+        }
+        .banner-slide.active{ opacity:1; z-index:1; }
+        .banner-slide img{
+            width:100%;
+            height:100%;
+            object-fit:cover;
+        }
+        .banner-text{
+            position:absolute;
+            bottom:50px; left:60px;
+            color:#fff;
+            text-shadow:0 2px 12px rgba(0,0,0,0.6);
+            z-index:2;
+        }
+        .banner-text h2{
+            font-size:36px;
+            margin-bottom:8px;
+        }
+        .banner-text p{
+            font-size:16px;
+            opacity:0.9;
+        }
+        .banner-dots{
+            position:absolute;
+            bottom:20px;
+            left:50%;
+            transform:translateX(-50%);
+            display:flex;
+            gap:10px;
+            z-index:3;
+        }
+        .banner-dot{
+            width:12px; height:12px;
+            border-radius:50%;
+            background:rgba(255,255,255,0.5);
+            cursor:pointer;
+            transition:all 0.3s;
+        }
+        .banner-dot.active{
+            background:#fff;
+            width:28px;
+            border-radius:6px;
+        }
+        .banner-arrow{
+            position:absolute;
+            top:50%;
+            transform:translateY(-50%);
+            z-index:3;
+            width:44px;
+            height:44px;
+            border-radius:50%;
+            background:rgba(255,255,255,0.25);
+            color:#fff;
+            font-size:22px;
+            border:none;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            transition:background 0.3s;
+        }
+        .banner-arrow:hover{ background:rgba(255,255,255,0.45); }
+        .banner-arrow.left{ left:20px; }
+        .banner-arrow.right{ right:20px; }
+
         h1{
             text-align: center;
             color:#222;
-            margin-bottom: 25px;
+            margin-bottom: 8px;
+        }
+        .subtitle{
+            text-align:center;
+            color:#888;
+            font-size:14px;
+            margin-bottom:25px;
         }
 
         .container{
@@ -33,7 +117,9 @@
             box-shadow: 0 2px 12px #00000015;
             position:relative;
             cursor:pointer;
+            transition:transform 0.2s,box-shadow 0.2s;
         }
+        .spot-card:hover{ transform:translateY(-4px); box-shadow:0 6px 20px rgba(0,0,0,0.12); }
         .spot-card img{
             width:100%;
             height:180px;
@@ -42,10 +128,25 @@
         .info{
             padding:16px;
         }
+        .name-row{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:8px;
+        }
         .name{
             font-size:18px;
             font-weight:bold;
-            margin-bottom:8px;
+        }
+        .avg-star{
+            color:#f5a623;
+            font-size:14px;
+            white-space:nowrap;
+        }
+        .avg-star span{
+            color:#999;
+            font-size:12px;
+            margin-left:2px;
         }
         .city,.level,.tag{
             font-size:14px;
@@ -56,6 +157,10 @@
             margin-top:10px;
             font-size:13px;
             color:#666;
+            display:-webkit-box;
+            -webkit-line-clamp:2;
+            -webkit-box-orient:vertical;
+            overflow:hidden;
         }
         .search-box{
             max-width: 1200px;
@@ -79,9 +184,7 @@
             background:#3478f6;
             color:white;
         }
-        #resetBtn{
-            background:#888;
-        }
+        #resetBtn{ background:#888; }
         .auth-bar{
             position:fixed;
             top:20px;
@@ -95,10 +198,7 @@
             cursor:pointer;
             font-size:14px;
         }
-        .login-btn{
-            background:#3478f6;
-            color:white;
-        }
+        .login-btn{ background:#3478f6; color:white; }
         .user-info{
             display:flex;
             align-items:center;
@@ -109,10 +209,7 @@
             box-shadow:0 2px 8px #00000012;
             font-size:14px;
         }
-        .user-info button{
-            background:#ff4d4f;
-            color:white;
-        }
+        .user-info button{ background:#ff4d4f; color:white; }
         .profile-link{
             color:#3478f6;
             cursor:pointer;
@@ -142,19 +239,15 @@
         .fav-btn.fav-active{ background:#ff4d4f; }
         .modal-overlay{
             position:fixed;
-            top:0;
-            left:0;
-            width:100%;
-            height:100%;
+            top:0; left:0;
+            width:100%; height:100%;
             background:#00000050;
             display:none;
             justify-content:center;
             align-items:center;
             z-index:200;
         }
-        .modal-overlay.show{
-            display:flex;
-        }
+        .modal-overlay.show{ display:flex; }
         .modal-box{
             background:#fff;
             padding:28px;
@@ -162,10 +255,7 @@
             width:360px;
             max-width:90%;
         }
-        .modal-box h3{
-            margin-bottom:18px;
-            text-align:center;
-        }
+        .modal-box h3{ margin-bottom:18px; text-align:center; }
         .modal-box input{
             width:100%;
             padding:10px;
@@ -197,11 +287,23 @@
         }
         .modal-box .close{
             position:absolute;
-            top:12px;
-            right:16px;
+            top:12px; right:16px;
             font-size:22px;
             cursor:pointer;
             color:#999;
+        }
+
+        @media (max-width:900px){
+            .container{ grid-template-columns: repeat(2,1fr); }
+            .banner-wrap{ height:240px; }
+            .banner-text{ left:30px; bottom:40px; }
+            .banner-text h2{ font-size:24px; }
+        }
+        @media (max-width:540px){
+            .container{ grid-template-columns: 1fr; }
+            .banner-wrap{ height:180px; }
+            .banner-text{ left:20px; bottom:30px; }
+            .banner-text h2{ font-size:18px; }
         }
     </style>
 </head>
@@ -224,8 +326,32 @@
             </div>
         </div>
     </div>
-    <h1>热门旅游景点推荐</h1>
 
+    <!-- 轮播 Banner -->
+    <div class="banner-wrap" id="bannerWrap">
+        <div class="banner-slide active" data-spot="1" onclick="goBanner(1)">
+            <img src="static/images/xihu.jpg" alt="西湖">
+            <div class="banner-text"><h2>杭州 · 西湖</h2><p>人间天堂，诗画江南</p></div>
+        </div>
+        <div class="banner-slide" data-spot="2" onclick="goBanner(2)">
+            <img src="static/images/gugong.jpg" alt="故宫">
+            <div class="banner-text"><h2>北京 · 故宫</h2><p>六百年皇家宫殿，世界文化遗产</p></div>
+        </div>
+        <div class="banner-slide" data-spot="7" onclick="goBanner(7)">
+            <img src="static/images/xizang.jpg" alt="西藏">
+            <div class="banner-text"><h2>西藏 · 雪域高原</h2><p>世界屋脊，心灵净土</p></div>
+        </div>
+        <div class="banner-slide" data-spot="3" onclick="goBanner(3)">
+            <img src="static/images/zhangjiajie.jpg" alt="张家界">
+            <div class="banner-text"><h2>张家界 · 武陵源</h2><p>奇峰林立，鬼斧神工</p></div>
+        </div>
+        <button class="banner-arrow left" onclick="bannerPrev(event)">&#10094;</button>
+        <button class="banner-arrow right" onclick="bannerNext(event)">&#10095;</button>
+        <div class="banner-dots" id="bannerDots"></div>
+    </div>
+
+    <h1>热门旅游景点推荐</h1>
+    <p class="subtitle">发现中国最美风景 · 规划你的下一段旅程</p>
 
     <div class="search-box">
         <input type="text" id="cityInput" placeholder="输入城市筛选">
@@ -239,7 +365,53 @@
         // 中文名与图片文件名映射
         const imgMap = {"西湖":"xihu","故宫":"gugong","张家界":"zhangjiajie","鼓浪屿":"gulangyu","丽江":"lijiang","西藏":"xizang","新疆":"xinjiang","成都":"chengdu","重庆":"chongqing","青岛":"qingdao","上海":"shanghai","南京":"nanjing"};
 
+        // ========== 轮播 Banner ==========
+        let bannerIdx = 0;
+        let bannerTimer = null;
+        const bannerSlides = document.querySelectorAll(".banner-slide");
+        const bannerTotal = bannerSlides.length;
 
+        // 创建圆点
+        const dotsBox = document.getElementById("bannerDots");
+        for(let i=0; i<bannerTotal; i++){
+            const dot = document.createElement("span");
+            dot.className = "banner-dot" + (i===0?" active":"");
+            dot.onclick = (e)=>{ e.stopPropagation(); goBannerSlide(i); };
+            dotsBox.appendChild(dot);
+        }
+        const bannerDots = document.querySelectorAll(".banner-dot");
+
+        function goBannerSlide(idx){
+            bannerSlides[bannerIdx].classList.remove("active");
+            bannerDots[bannerIdx].classList.remove("active");
+            bannerIdx = idx;
+            bannerSlides[bannerIdx].classList.add("active");
+            bannerDots[bannerIdx].classList.add("active");
+        }
+        function bannerNext(e){ e.stopPropagation(); goBannerSlide((bannerIdx+1)%bannerTotal); resetBannerTimer(); }
+        function bannerPrev(e){ e.stopPropagation(); goBannerSlide((bannerIdx-1+bannerTotal)%bannerTotal); resetBannerTimer(); }
+        function resetBannerTimer(){
+            clearInterval(bannerTimer);
+            bannerTimer = setInterval(()=>{ goBannerSlide((bannerIdx+1)%bannerTotal); }, 4000);
+        }
+        function goBanner(spotId){
+            if(user){
+                fetch("/api/history",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:user.id,spot_id:spotId})});
+            }
+            location.href = `/detail?id=${spotId}`;
+        }
+        bannerTimer = setInterval(()=>{ goBannerSlide((bannerIdx+1)%bannerTotal); }, 4000);
+
+        // ========== 渲染星级 ==========
+        function renderStars(avg, count){
+            if(!avg || avg===0) return '<span style="color:#ccc;font-size:14px;">暂无评分</span>';
+            const full = Math.floor(avg);
+            const half = avg - full >= 0.5 ? 1 : 0;
+            let s = '';
+            for(let i=0;i<full;i++) s += '⭐';
+            if(half) s += '✨';
+            return s + `<span>${avg}分(${count}评)</span>`;
+        }
 
         function loadData(city="",tag=""){
             let url = `/api/spots?city=${city}&tag=${tag}`
@@ -250,29 +422,30 @@
                 const box = document.getElementById("list");
                 box.innerHTML = "";
                 data.forEach(item=>{
+                    let starsHtml = renderStars(item.avg_rating, item.rating_count);
                     let card = `
                     <div class="spot-card" data-id="${item.id}" onclick="goDetail(event,${item.id})">
                         <button class="fav-btn" data-spot="${item.id}" onclick="event.stopPropagation();toggleFav(${item.id})">🤍</button>
                         <img src="static/images/${imgMap[item.name]}.jpg" alt="${item.name}">
                         <div class="info">
-                            <div class="name">${item.name}</div>
+                            <div class="name-row">
+                                <div class="name">${item.name}</div>
+                                <div class="avg-star">${starsHtml}</div>
+                            </div>
                             <div class="city">城市：${item.city}</div>
                             <div class="level">等级：${item.level}</div>
                             <div class="tag">标签：${item.tag}</div>
-                            <div class="desc">简介：${item.desc}</div>
+                            <div class="desc">${item.desc || ''}</div>
                         </div>
                     </div>
                     `
                     box.innerHTML += card;
                 });
-                // 渲染完卡片后标记已收藏
                 if(user) markFavs(data);
             })
         }
-        // 页面初次加载
         loadData();
 
-        // 标记已收藏的卡片
         function markFavs(spots){
             spots.forEach(item=>{
                 fetch(`/api/favorites/check?user_id=${user.id}&spot_id=${item.id}`)
@@ -286,7 +459,6 @@
             });
         }
 
-        // 收藏/取消收藏
         function toggleFav(spotId){
             if(!user){ alert("请先登录"); openModal(); return; }
             const btn = document.querySelector(`.fav-btn[data-spot="${spotId}"]`);
@@ -295,10 +467,7 @@
                 fetch(`/api/favorites?user_id=${user.id}&spot_id=${spotId}`, {method:"DELETE"})
                 .then(res=>res.json())
                 .then(r=>{
-                    if(r.code===200){
-                        btn.textContent="🤍";
-                        btn.classList.remove("fav-active");
-                    }
+                    if(r.code===200){ btn.textContent="🤍"; btn.classList.remove("fav-active"); }
                 });
             }else{
                 fetch("/api/favorites", {
@@ -308,10 +477,7 @@
                 })
                 .then(res=>res.json())
                 .then(r=>{
-                    if(r.code===200){
-                        btn.textContent="❤️";
-                        btn.classList.add("fav-active");
-                    }
+                    if(r.code===200){ btn.textContent="❤️"; btn.classList.add("fav-active"); }
                 });
             }
         }
@@ -327,7 +493,6 @@
             location.href = `/detail?id=${id}`;
         }
 
-        // 搜索按钮事件
         document.getElementById("searchBtn").addEventListener("click",()=>{
             let city = document.getElementById("cityInput").value
             let tag = document.getElementById("tagInput").value
@@ -358,12 +523,8 @@
             }
         }
 
-        function openModal(){
-            document.getElementById("authModal").classList.add("show");
-        }
-        function closeModal(){
-            document.getElementById("authModal").classList.remove("show");
-        }
+        function openModal(){ document.getElementById("authModal").classList.add("show"); }
+        function closeModal(){ document.getElementById("authModal").classList.remove("show"); }
         function switchToRegister(){
             isRegister = true;
             document.getElementById("modalTitle").textContent = "注册";
@@ -405,14 +566,10 @@
                 }
             })
         }
-        function logout(){
-            localStorage.removeItem("user");
-            location.reload();
-        }
+        function logout(){ localStorage.removeItem("user"); location.reload(); }
         document.getElementById("authModal").addEventListener("click", (e)=>{
             if(e.target.id === "authModal") closeModal();
         });
     </script>
 </body>
 </html>
-

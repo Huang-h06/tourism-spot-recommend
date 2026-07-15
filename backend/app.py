@@ -141,7 +141,7 @@ def get_spot_comments(spot_id):
     return jsonify({"code": 200, "data": comments})
 
 
-# 提交景点评论
+# 提交景点评论（含评分）
 @app.route("/api/spots/<int:spot_id>/comments", methods=["POST"])
 def post_spot_comment(spot_id):
     spot = db.get_spot_by_id(spot_id)
@@ -151,6 +151,10 @@ def post_spot_comment(spot_id):
     username = (data.get("username", "") or "").strip()
     content = (data.get("content", "") or "").strip()
     user_id = data.get("user_id")
+    rating = data.get("rating", 5)
+    # 校验评分范围
+    if not isinstance(rating, int) or rating < 1 or rating > 5:
+        return jsonify({"code": 400, "msg": "评分须为1~5整数"}), 400
     if not username:
         return jsonify({"code": 400, "msg": "请输入昵称"}), 400
     if not content:
@@ -159,8 +163,32 @@ def post_spot_comment(spot_id):
         return jsonify({"code": 400, "msg": "昵称不超过50字"}), 400
     if len(content) > 500:
         return jsonify({"code": 400, "msg": "评论内容不超过500字"}), 400
-    comment = db.add_comment(spot_id, username, content, user_id)
+    if len(content) < 2:
+        return jsonify({"code": 400, "msg": "评论内容不能少于2个字"}), 400
+    comment = db.add_comment(spot_id, username, content, user_id, rating)
     return jsonify({"code": 200, "data": comment, "msg": "评论成功"})
+
+
+# 删除评论
+@app.route("/api/comments/<int:comment_id>", methods=["DELETE"])
+def delete_comment(comment_id):
+    data = request.get_json() or {}
+    user_id = data.get("user_id")
+    if not user_id:
+        return jsonify({"code": 400, "msg": "缺少用户ID"}), 400
+    result = db.delete_comment(comment_id, user_id)
+    if not result:
+        return jsonify({"code": 404, "msg": "评论不存在或无权删除"}), 404
+    return jsonify({"code": 200, "msg": "删除成功"})
+
+
+# 点赞评论
+@app.route("/api/comments/<int:comment_id>/like", methods=["POST"])
+def like_comment(comment_id):
+    new_likes = db.like_comment(comment_id)
+    if new_likes is None:
+        return jsonify({"code": 404, "msg": "评论不存在"}), 404
+    return jsonify({"code": 200, "data": {"likes": new_likes}, "msg": "点赞成功"})
 
 
 # 获取用户评论列表

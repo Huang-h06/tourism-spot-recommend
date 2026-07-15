@@ -56,7 +56,7 @@ def query_spots(city="", tag=""):
     return res.data
 
 
-# 根据id查询单个景点
+# 根据id查询单个景点（含攻略信息）
 def get_spot_by_id(spot_id):
     res = supabase.table("spots").select("*").eq("id", spot_id).execute()
     if len(res.data) == 0:
@@ -76,8 +76,8 @@ def get_comments_by_spot(spot_id):
     return res.data
 
 
-# 新增评论
-def add_comment(spot_id, username, content, user_id=None):
+# 新增评论（含评分）
+def add_comment(spot_id, username, content, user_id=None, rating=5):
     data = {
         "spot_id": spot_id,
         "username": username,
@@ -85,8 +85,60 @@ def add_comment(spot_id, username, content, user_id=None):
     }
     if user_id:
         data["user_id"] = user_id
-    res = supabase.table("comments").insert(data).execute()
+    # 如果 rating/likes 列存在才传入，否则走旧版兼容
+    try:
+        data["rating"] = rating
+        data["likes"] = 0
+        res = supabase.table("comments").insert(data).execute()
+    except Exception:
+        data.pop("rating", None)
+        data.pop("likes", None)
+        res = supabase.table("comments").insert(data).execute()
+    # 尝试更新景点的平均评分
+    try:
+        _update_spot_avg_rating(spot_id)
+    except Exception:
+        pass
     return res.data
+
+
+# 更新景点平均评分
+def _update_spot_avg_rating(spot_id):
+    res = supabase.table("comments").select("rating").eq("spot_id", spot_id).execute()
+    ratings = [r["rating"] for r in res.data if r.get("rating")]
+    if ratings:
+        avg = round(sum(ratings) / len(ratings), 1)
+        supabase.table("spots").update({
+            "avg_rating": avg,
+            "rating_count": len(ratings)
+        }).eq("id", spot_id).execute()
+    else:
+        supabase.table("spots").update({
+            "avg_rating": 0,
+            "rating_count": 0
+        }).eq("id", spot_id).execute()
+
+
+# 删除评论
+def delete_comment(comment_id, user_id=None):
+    query = supabase.table("comments").delete().eq("id", comment_id)
+    if user_id:
+        query = query.eq("user_id", user_id)
+    res = query.execute()
+    return res.data
+
+
+# 点赞评论
+def like_comment(comment_id):
+    try:
+        res = supabase.table("comments").select("likes").eq("id", comment_id).execute()
+        if res.data:
+            current = res.data[0].get("likes", 0) or 0
+            supabase.table("comments").update({"likes": current + 1}).eq("id", comment_id).execute()
+            return current + 1
+    except Exception:
+        pass
+    return None
 
 
 # 获取某用户的所有评论
@@ -112,7 +164,7 @@ def remove_favorite(user_id, spot_id):
 
 # 获取用户收藏列表
 def get_user_favorites(user_id):
-    res = supabase.table("favorites").select("*, spots(name,city,level,tag)").eq("user_id", user_id).order("created_at", desc=True).execute()
+    res = supabase.table("favorites").select("*, spots(*)").eq("user_id", user_id).order("created_at", desc=True).execute()
     return res.data
 
 
@@ -134,7 +186,7 @@ def add_browsing_history(user_id, spot_id):
 
 # 获取用户浏览记录
 def get_user_browsing_history(user_id):
-    res = supabase.table("browsing_history").select("*, spots(name,city,level,tag)").eq("user_id", user_id).order("viewed_at", desc=True).execute()
+    res = supabase.table("browsing_history").select("*, spots(*)").eq("user_id", user_id).order("viewed_at", desc=True).execute()
     return res.data
 
 

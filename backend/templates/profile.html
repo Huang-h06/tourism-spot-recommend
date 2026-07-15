@@ -173,10 +173,12 @@
             border-radius:10px;
             padding:16px 20px;
             box-shadow:0 1px 6px rgba(0,0,0,0.06);
+            position:relative;
         }
         .comment-header{
             display:flex;
             justify-content:space-between;
+            align-items:center;
             margin-bottom:8px;
             font-size:13px;
             color:#888;
@@ -190,6 +192,29 @@
             font-size:14px;
             line-height:1.6;
             color:#444;
+        }
+        .comment-stars{
+            font-size:13px;
+            margin-top:4px;
+        }
+        .comment-actions{
+            display:flex;
+            gap:12px;
+            margin-top:8px;
+            font-size:12px;
+        }
+        .del-comment-btn{
+            color:#ccc;
+            cursor:pointer;
+            background:none;
+            border:none;
+            font-size:12px;
+            padding:2px 4px;
+        }
+        .del-comment-btn:hover{ color:#ff4d4f; }
+        .comment-likes{
+            color:#999;
+            font-size:12px;
         }
 
         .empty-tip{
@@ -421,15 +446,44 @@
                     box.innerHTML = `<div class="empty-tip">还没有发表评论<br><br><a href="/" style="color:#3478f6;">去逛逛</a></div>`;
                     return;
                 }
-                box.innerHTML = data.map(c=>`
-                    <div class="comment-item" onclick="goDetail(${c.spot_id})" style="cursor:pointer;">
-                        <div class="comment-header">
-                            <span class="spot-name">${c.spots ? c.spots.name : "未知景点"}</span>
-                            <span>${new Date(c.created_at).toLocaleString()}</span>
+                box.innerHTML = data.map(c=>{
+                    const rating = c.rating || 5;
+                    let starsHtml = '';
+                    for(let i=0;i<rating;i++) starsHtml += '★';
+                    for(let i=rating;i<5;i++) starsHtml += '☆';
+                    return `
+                        <div class="comment-item" id="comment-${c.id}">
+                            <div class="comment-header">
+                                <span class="spot-name" onclick="goDetail(${c.spot_id})">${c.spots ? c.spots.name : "未知景点"}</span>
+                                <span>${new Date(c.created_at).toLocaleString()}</span>
+                            </div>
+                            <div class="comment-body">${c.content}</div>
+                            <div class="comment-stars" style="color:#f5a623;">${starsHtml}</div>
+                            <div class="comment-actions">
+                                <span class="comment-likes">👍 ${c.likes || 0} 赞</span>
+                                <button class="del-comment-btn" onclick="event.stopPropagation();delMyComment(${c.id})">🗑 删除</button>
+                            </div>
                         </div>
-                        <div class="comment-body">${c.content}</div>
-                    </div>
-                `).join("");
+                    `;
+                }).join("");
+            });
+        }
+
+        function delMyComment(cid){
+            if(!confirm("确定要删除这条评论吗？")) return;
+            fetch(`/api/comments/${cid}`, {
+                method:"DELETE",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({user_id: user.id})
+            })
+            .then(res=>res.json())
+            .then(r=>{
+                if(r.code === 200){
+                    const el = document.getElementById("comment-"+cid);
+                    if(el) el.remove();
+                }else{
+                    alert(r.msg || "删除失败");
+                }
             });
         }
 
