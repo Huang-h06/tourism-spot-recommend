@@ -95,15 +95,27 @@
             box-shadow:0 4px 20px rgba(0,0,0,0.4);
         }
         .food-lightbox .close-btn{
-            position:absolute;
-            top:20px;
-            right:30px;
-            font-size:36px;
+            position:fixed;
+            top:16px;
+            right:24px;
+            width:42px;
+            height:42px;
+            line-height:42px;
+            text-align:center;
+            font-size:32px;
             color:#fff;
             cursor:pointer;
+            background:rgba(0,0,0,0.5);
+            border-radius:50%;
+            z-index:310;
             text-shadow:0 2px 6px rgba(0,0,0,0.5);
+            user-select:none;
+        }
+        .food-lightbox .close-btn:hover{
+            background:rgba(0,0,0,0.7);
         }
         .comment-form{
+
 
             display:flex;
             flex-direction:column;
