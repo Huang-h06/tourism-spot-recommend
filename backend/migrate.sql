@@ -24,3 +24,15 @@ UPDATE spots SET best_season='春秋季（3-5月、9-11月）', duration='建议
 UPDATE spots SET best_season='夏季（6-9月最佳）', duration='建议2-3天', ticket='各景点票价不等', open_time='各景区不同', transport='青岛流亭机场/火车站，公交便利' WHERE name='青岛';
 UPDATE spots SET best_season='春秋季（3-5月、9-11月）', duration='建议2-3天', ticket='各景点票价不等', open_time='各景区不同', transport='上海浦东/虹桥机场，地铁公交便利' WHERE name='上海';
 UPDATE spots SET best_season='春秋季（3-5月、9-11月）', duration='建议2-3天', ticket='各景点票价不等', open_time='各景区不同', transport='南京禄口机场/南京南站，地铁公交便利' WHERE name='南京';
+
+-- ===== 4. 根据已有评论重新计算每个景点的平均分 =====
+UPDATE spots s
+SET avg_rating = COALESCE(ROUND(sub.avg::numeric, 1), 0),
+    rating_count = COALESCE(sub.cnt, 0)
+FROM (
+    SELECT spot_id, AVG(rating) AS avg, COUNT(*) AS cnt
+    FROM comments
+    WHERE rating IS NOT NULL
+    GROUP BY spot_id
+) sub
+WHERE s.id = sub.spot_id;
