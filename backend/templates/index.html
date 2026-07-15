@@ -327,24 +327,9 @@
         </div>
     </div>
 
-    <!-- 轮播 Banner -->
+    <!-- 轮播 Banner（动态生成所有景点） -->
     <div class="banner-wrap" id="bannerWrap">
-        <div class="banner-slide active" data-spot="1" onclick="goBanner(1)">
-            <img src="static/images/xihu.jpg" alt="西湖">
-            <div class="banner-text"><h2>杭州 · 西湖</h2><p>人间天堂，诗画江南</p></div>
-        </div>
-        <div class="banner-slide" data-spot="2" onclick="goBanner(2)">
-            <img src="static/images/gugong.jpg" alt="故宫">
-            <div class="banner-text"><h2>北京 · 故宫</h2><p>六百年皇家宫殿，世界文化遗产</p></div>
-        </div>
-        <div class="banner-slide" data-spot="7" onclick="goBanner(7)">
-            <img src="static/images/xizang.jpg" alt="西藏">
-            <div class="banner-text"><h2>西藏 · 雪域高原</h2><p>世界屋脊，心灵净土</p></div>
-        </div>
-        <div class="banner-slide" data-spot="3" onclick="goBanner(3)">
-            <img src="static/images/zhangjiajie.jpg" alt="张家界">
-            <div class="banner-text"><h2>张家界 · 武陵源</h2><p>奇峰林立，鬼斧神工</p></div>
-        </div>
+        <div class="banner-loading" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#999;font-size:14px;">加载中...</div>
         <button class="banner-arrow left" onclick="bannerPrev(event)">&#10094;</button>
         <button class="banner-arrow right" onclick="bannerNext(event)">&#10095;</button>
         <div class="banner-dots" id="bannerDots"></div>
@@ -365,34 +350,84 @@
         // 中文名与图片文件名映射
         const imgMap = {"西湖":"xihu","故宫":"gugong","张家界":"zhangjiajie","鼓浪屿":"gulangyu","丽江":"lijiang","西藏":"xizang","新疆":"xinjiang","成都":"chengdu","重庆":"chongqing","青岛":"qingdao","上海":"shanghai","南京":"nanjing"};
 
-        // ========== 轮播 Banner ==========
+        // 景点标语映射
+        const sloganMap = {
+            "西湖":"人间天堂，诗画江南",
+            "故宫":"六百年皇家宫殿，世界文化遗产",
+            "张家界":"奇峰林立，鬼斧神工",
+            "鼓浪屿":"海上花园，钢琴之岛",
+            "丽江":"邂逅柔软时光，梦回茶马古道",
+            "西藏":"世界屋脊，心灵净土",
+            "新疆":"大美新疆，辽阔无疆",
+            "成都":"天府之国，美食之都",
+            "重庆":"山城雾都，火锅之城",
+            "青岛":"红瓦绿树，碧海蓝天",
+            "上海":"东方明珠，摩登之都",
+            "南京":"六朝古都，十朝都会"
+        };
+
+        // ========== 轮播 Banner（动态从API加载所有景点） ==========
         let bannerIdx = 0;
         let bannerTimer = null;
-        const bannerSlides = document.querySelectorAll(".banner-slide");
-        const bannerTotal = bannerSlides.length;
+        let bannerSlides = [];
+        let bannerDots = [];
+        let bannerTotal = 0;
 
-        // 创建圆点
-        const dotsBox = document.getElementById("bannerDots");
-        for(let i=0; i<bannerTotal; i++){
-            const dot = document.createElement("span");
-            dot.className = "banner-dot" + (i===0?" active":"");
-            dot.onclick = (e)=>{ e.stopPropagation(); goBannerSlide(i); };
-            dotsBox.appendChild(dot);
+        function buildBanner(spots){
+            const wrap = document.getElementById("bannerWrap");
+            // 清空之前的加载提示和旧幻灯片
+            const oldSlides = wrap.querySelectorAll(".banner-slide");
+            oldSlides.forEach(s=>s.remove());
+            const loading = wrap.querySelector(".banner-loading");
+            if(loading) loading.remove();
+
+            spots.forEach((item, i) => {
+                const slide = document.createElement("div");
+                slide.className = "banner-slide" + (i===0?" active":"");
+                slide.setAttribute("data-spot", item.id);
+                slide.onclick = ()=>goBanner(item.id);
+                const imgFile = imgMap[item.name] || "default";
+                slide.innerHTML = `
+                    <img src="static/images/${imgFile}.jpg" alt="${item.name}">
+                    <div class="banner-text"><h2>${item.city} · ${item.name}</h2><p>${sloganMap[item.name] || item.desc || ''}</p></div>
+                `;
+                wrap.insertBefore(slide, wrap.querySelector(".banner-arrow"));
+            });
+
+            bannerSlides = wrap.querySelectorAll(".banner-slide");
+            bannerTotal = bannerSlides.length;
+
+            // 创建圆点
+            const dotsBox = document.getElementById("bannerDots");
+            dotsBox.innerHTML = "";
+            for(let i=0; i<bannerTotal; i++){
+                const dot = document.createElement("span");
+                dot.className = "banner-dot" + (i===0?" active":"");
+                dot.onclick = (e)=>{ e.stopPropagation(); goBannerSlide(i); };
+                dotsBox.appendChild(dot);
+            }
+            bannerDots = dotsBox.querySelectorAll(".banner-dot");
+
+            if(bannerTotal > 0){
+                bannerTimer = setInterval(()=>{ goBannerSlide((bannerIdx+1)%bannerTotal); }, 4000);
+            }
         }
-        const bannerDots = document.querySelectorAll(".banner-dot");
 
         function goBannerSlide(idx){
+            if(bannerTotal === 0) return;
             bannerSlides[bannerIdx].classList.remove("active");
             bannerDots[bannerIdx].classList.remove("active");
             bannerIdx = idx;
             bannerSlides[bannerIdx].classList.add("active");
             bannerDots[bannerIdx].classList.add("active");
         }
-        function bannerNext(e){ e.stopPropagation(); goBannerSlide((bannerIdx+1)%bannerTotal); resetBannerTimer(); }
-        function bannerPrev(e){ e.stopPropagation(); goBannerSlide((bannerIdx-1+bannerTotal)%bannerTotal); resetBannerTimer(); }
+        function bannerNext(e){ e.stopPropagation(); if(bannerTotal===0)return; goBannerSlide((bannerIdx+1)%bannerTotal); resetBannerTimer(); }
+        function bannerPrev(e){ e.stopPropagation(); if(bannerTotal===0)return; goBannerSlide((bannerIdx-1+bannerTotal)%bannerTotal); resetBannerTimer(); }
         function resetBannerTimer(){
             clearInterval(bannerTimer);
-            bannerTimer = setInterval(()=>{ goBannerSlide((bannerIdx+1)%bannerTotal); }, 4000);
+            if(bannerTotal > 0){
+                bannerTimer = setInterval(()=>{ goBannerSlide((bannerIdx+1)%bannerTotal); }, 4000);
+            }
         }
         function goBanner(spotId){
             if(user){
@@ -400,7 +435,6 @@
             }
             location.href = `/detail?id=${spotId}`;
         }
-        bannerTimer = setInterval(()=>{ goBannerSlide((bannerIdx+1)%bannerTotal); }, 4000);
 
         // ========== 渲染星级 ==========
         function renderStars(avg, count){
@@ -413,12 +447,18 @@
             return s + `<span>${avg}分(${count}评)</span>`;
         }
 
+        let bannerBuilt = false;
         function loadData(city="",tag=""){
             let url = `/api/spots?city=${city}&tag=${tag}`
             fetch(url)
             .then(res=>res.json())
             .then(result=>{
                 const data = result.data;
+                // 首次加载时构建轮播 Banner
+                if(!bannerBuilt && !city && !tag){
+                    buildBanner(data);
+                    bannerBuilt = true;
+                }
                 const box = document.getElementById("list");
                 box.innerHTML = "";
                 data.forEach(item=>{
