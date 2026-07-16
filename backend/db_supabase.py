@@ -21,7 +21,7 @@ def get_user_by_username(username):
 
 # 根据id查询用户
 def get_user_by_id(user_id):
-    res = supabase.table("users").select("id,username,email,avatar_url,created_at").eq("id", user_id).execute()
+    res = supabase.table("users").select("id,username,email,avatar_url,role,enabled,created_at").eq("id", user_id).execute()
     if len(res.data) == 0:
         return None
     return res.data[0]

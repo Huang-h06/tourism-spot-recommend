@@ -109,6 +109,9 @@ if(!user){ alert("请先登录"); location.href="/"; }
 
 fetch(`/api/admin/check?user_id=${user.id}`).then(r=>r.json()).then(r=>{
     if(!r.data||!r.data.is_admin){ alert("无管理员权限"); location.href="/"; return; }
+    // 同步本地缓存中的角色
+    user.role = r.data.role;
+    localStorage.setItem("user", JSON.stringify(user));
     loadAll();
 });
 

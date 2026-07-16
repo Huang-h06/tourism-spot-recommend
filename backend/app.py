@@ -76,7 +76,8 @@ def login():
         "id": user["id"],
         "username": user["username"],
         "email": user["email"],
-        "avatar_url": user.get("avatar_url", "")
+        "avatar_url": user.get("avatar_url", ""),
+        "role": user.get("role", "user")
     }})
 
 
