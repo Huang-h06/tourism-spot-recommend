@@ -548,8 +548,9 @@
                 setTimeout(()=>{
                     if(!document.getElementById("mapContainer")._leaflet_id){
                         const map = L.map('mapContainer').setView([item.lat, item.lng], 14);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; OpenStreetMap',
+                        L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+                            subdomains: '1234',
+                            attribution: '&copy; 高德地图',
                             maxZoom: 18
                         }).addTo(map);
                         L.marker([item.lat, item.lng]).addTo(map).bindPopup(`<b>${item.name}</b><br>${item.city}`).openPopup();
