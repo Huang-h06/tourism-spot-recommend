@@ -20,12 +20,89 @@ def get_user_by_username(username):
 
 
 # 根据id查询用户
-
 def get_user_by_id(user_id):
     res = supabase.table("users").select("id,username,email,avatar_url,created_at").eq("id", user_id).execute()
     if len(res.data) == 0:
         return None
     return res.data[0]
+
+
+# ========== 游记模块 ==========
+# 创建游记
+def create_note(user_id, title, content, spot_id=None, images='[]'):
+    data = {"user_id": user_id, "title": title, "content": content, "images": images}
+    if spot_id:
+        data["spot_id"] = spot_id
+    res = supabase.table("travel_notes").insert(data).execute()
+    return res.data
+
+# 获取所有游记（含用户和景点信息）
+def get_all_notes():
+    res = supabase.table("travel_notes").select("*, users(username,avatar_url), spots(name,city)").order("created_at", desc=True).execute()
+    return res.data
+
+# 获取用户游记
+def get_user_notes(user_id):
+    res = supabase.table("travel_notes").select("*, users(username,avatar_url), spots(name,city)").eq("user_id", user_id).order("created_at", desc=True).execute()
+    return res.data
+
+# 根据ID获取游记
+def get_note_by_id(note_id):
+    res = supabase.table("travel_notes").select("*, users(username,avatar_url), spots(name,city)").eq("id", note_id).execute()
+    if len(res.data) == 0:
+        return None
+    return res.data[0]
+
+# 删除游记
+def delete_note(note_id, user_id=None):
+    query = supabase.table("travel_notes").delete().eq("id", note_id)
+    if user_id:
+        query = query.eq("user_id", user_id)
+    res = query.execute()
+    return res.data
+
+
+# ========== 管理员模块 ==========
+# 获取所有用户
+def admin_get_users():
+    res = supabase.table("users").select("id,username,email,role,enabled,created_at,avatar_url").order("id").execute()
+    return res.data
+
+# 封禁/解封用户
+def admin_toggle_user(user_id, enabled):
+    supabase.table("users").update({"enabled": enabled}).eq("id", user_id).execute()
+    return True
+
+# 设置用户角色
+def admin_set_role(user_id, role):
+    supabase.table("users").update({"role": role}).eq("id", user_id).execute()
+    return True
+
+# 新增景点（管理员）
+def admin_add_spot(name, city, level, tag, desc, lat=0, lng=0, best_season='', duration='', ticket='', open_time='', transport=''):
+    data = {"name": name, "city": city, "level": level, "tag": tag, "desc": desc, "lat": lat, "lng": lng, "best_season": best_season, "duration": duration, "ticket": ticket, "open_time": open_time, "transport": transport}
+    res = supabase.table("spots").insert(data).execute()
+    return res.data
+
+# 编辑景点（管理员）
+def admin_update_spot(spot_id, data):
+    supabase.table("spots").update(data).eq("id", spot_id).execute()
+    return True
+
+# 删除景点（管理员）
+def admin_delete_spot(spot_id):
+    supabase.table("spots").delete().eq("id", spot_id).execute()
+    return True
+
+# 上下架景点
+def admin_toggle_spot(spot_id, status):
+    supabase.table("spots").update({"status": status}).eq("id", spot_id).execute()
+    return True
+
+# 管理员删除评论
+def admin_delete_comment(comment_id):
+    res = supabase.table("comments").delete().eq("id", comment_id).execute()
+    return res.data
 
 
 # 更新用户头像

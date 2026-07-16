@@ -25,7 +25,41 @@ UPDATE spots SET best_season='夏季（6-9月最佳）', duration='建议2-3天'
 UPDATE spots SET best_season='春秋季（3-5月、9-11月）', duration='建议2-3天', ticket='各景点票价不等', open_time='各景区不同', transport='上海浦东/虹桥机场，地铁公交便利' WHERE name='上海';
 UPDATE spots SET best_season='春秋季（3-5月、9-11月）', duration='建议2-3天', ticket='各景点票价不等', open_time='各景区不同', transport='南京禄口机场/南京南站，地铁公交便利' WHERE name='南京';
 
--- ===== 4. 根据已有评论重新计算每个景点的平均分 =====
+-- ===== 4. 景点表新增字段：经纬度 + 上下架状态 =====
+ALTER TABLE spots ADD COLUMN IF NOT EXISTS lat DECIMAL(10,6) DEFAULT 0;
+ALTER TABLE spots ADD COLUMN IF NOT EXISTS lng DECIMAL(10,6) DEFAULT 0;
+ALTER TABLE spots ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
+
+-- ===== 5. 用户表新增字段：角色 + 封禁状态 =====
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'user';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS enabled BOOLEAN DEFAULT true;
+
+-- ===== 6. 创建游记表 =====
+CREATE TABLE IF NOT EXISTS travel_notes (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    spot_id INT,
+    title VARCHAR(200) NOT NULL,
+    content TEXT NOT NULL,
+    images TEXT DEFAULT '[]',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ===== 7. 更新12个景点的经纬度 =====
+UPDATE spots SET lat=30.2374, lng=120.1405 WHERE name='西湖';
+UPDATE spots SET lat=39.9163, lng=116.3972 WHERE name='故宫';
+UPDATE spots SET lat=29.3570, lng=110.4421 WHERE name='张家界';
+UPDATE spots SET lat=24.4478, lng=118.0678 WHERE name='鼓浪屿';
+UPDATE spots SET lat=26.8721, lng=100.2299 WHERE name='丽江';
+UPDATE spots SET lat=29.6500, lng=91.1000 WHERE name='西藏';
+UPDATE spots SET lat=43.8256, lng=87.6168 WHERE name='新疆';
+UPDATE spots SET lat=30.5728, lng=104.0668 WHERE name='成都';
+UPDATE spots SET lat=29.4316, lng=106.9123 WHERE name='重庆';
+UPDATE spots SET lat=36.0671, lng=120.3826 WHERE name='青岛';
+UPDATE spots SET lat=31.2304, lng=121.4737 WHERE name='上海';
+UPDATE spots SET lat=32.0603, lng=118.7969 WHERE name='南京';
+
+-- ===== 8. 根据已有评论重新计算每个景点的平均分 =====
 UPDATE spots s
 SET avg_rating = COALESCE(ROUND(sub.avg::numeric, 1), 0),
     rating_count = COALESCE(sub.cnt, 0)

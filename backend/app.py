@@ -16,7 +16,11 @@ CORS(app)
 def get_all_spots():
     city = request.args.get("city", "")
     tag = request.args.get("tag", "")
+    all_spots = request.args.get("all", "") == "1"
     res = db.query_spots(city, tag)
+    # 如果all=1则返回全部（管理员用），否则只返回active的
+    if not all_spots:
+        res = [s for s in res if s.get("status", "active") != "inactive"]
     return jsonify({"code": 200, "data": res, "msg": "查询成功"})
 
 # 根据ID获取单个景点详情
@@ -300,6 +304,143 @@ def detail_page():
 @app.route("/profile")
 def profile_page():
     return render_template("profile.html")
+
+# 游记列表页
+@app.route("/notes")
+def notes_page():
+    return render_template("notes.html")
+
+# 管理员后台
+@app.route("/admin")
+def admin_page():
+    return render_template("admin.html")
+
+
+# ========== 游记 API ==========
+# 获取所有游记
+@app.route("/api/notes", methods=["GET"])
+def get_notes():
+    data = db.get_all_notes()
+    return jsonify({"code": 200, "data": data})
+
+# 获取当前用户的游记
+@app.route("/api/notes/my", methods=["GET"])
+def get_my_notes():
+    user_id = request.args.get("user_id", type=int)
+    if not user_id:
+        return jsonify({"code": 400, "msg": "缺少用户ID"}), 400
+    data = db.get_user_notes(user_id)
+    return jsonify({"code": 200, "data": data})
+
+# 发布游记
+@app.route("/api/notes", methods=["POST"])
+def create_note():
+    data = request.get_json()
+    user_id = data.get("user_id")
+    title = (data.get("title", "") or "").strip()
+    content = (data.get("content", "") or "").strip()
+    spot_id = data.get("spot_id")
+    images = data.get("images", "[]")
+    if not user_id:
+        return jsonify({"code": 400, "msg": "请先登录"}), 400
+    if not title:
+        return jsonify({"code": 400, "msg": "请输入标题"}), 400
+    if not content:
+        return jsonify({"code": 400, "msg": "请输入游记内容"}), 400
+    if len(title) > 200:
+        return jsonify({"code": 400, "msg": "标题不超过200字"}), 400
+    note = db.create_note(user_id, title, content, spot_id, images)
+    return jsonify({"code": 200, "data": note, "msg": "发布成功"})
+
+# 删除游记
+@app.route("/api/notes/<int:note_id>", methods=["DELETE"])
+def delete_note(note_id):
+    data = request.get_json() or {}
+    user_id = data.get("user_id")
+    if not user_id:
+        return jsonify({"code": 400, "msg": "缺少用户ID"}), 400
+    result = db.delete_note(note_id, user_id)
+    if not result:
+        return jsonify({"code": 404, "msg": "游记不存在或无权删除"}), 404
+    return jsonify({"code": 200, "msg": "删除成功"})
+
+
+# ========== 管理员 API ==========
+# 检查是否是管理员
+@app.route("/api/admin/check", methods=["GET"])
+def admin_check():
+    user_id = request.args.get("user_id", type=int)
+    if not user_id:
+        return jsonify({"code": 400, "msg": "缺少用户ID"}), 400
+    user = db.get_user_by_id(user_id)
+    if not user:
+        return jsonify({"code": 404, "msg": "用户不存在"}), 404
+    is_admin = user.get("role") == "admin"
+    return jsonify({"code": 200, "data": {"is_admin": is_admin, "role": user.get("role")}})
+
+# 获取所有用户
+@app.route("/api/admin/users", methods=["GET"])
+def admin_users():
+    data = db.admin_get_users()
+    return jsonify({"code": 200, "data": data})
+
+# 封禁/解封用户
+@app.route("/api/admin/users/<int:user_id>/toggle", methods=["POST"])
+def admin_toggle_user(user_id):
+    data = request.get_json()
+    enabled = data.get("enabled", True)
+    db.admin_toggle_user(user_id, enabled)
+    return jsonify({"code": 200, "msg": "操作成功"})
+
+# 设置用户角色
+@app.route("/api/admin/users/<int:user_id>/role", methods=["POST"])
+def admin_set_role(user_id):
+    data = request.get_json()
+    role = data.get("role", "user")
+    db.admin_set_role(user_id, role)
+    return jsonify({"code": 200, "msg": "角色更新成功"})
+
+# 新增景点
+@app.route("/api/admin/spots", methods=["POST"])
+def admin_add_spot():
+    data = request.get_json()
+    name = (data.get("name", "") or "").strip()
+    city = (data.get("city", "") or "").strip()
+    level = (data.get("level", "") or "").strip()
+    tag = (data.get("tag", "") or "").strip()
+    desc = (data.get("desc", "") or "").strip()
+    if not name or not city:
+        return jsonify({"code": 400, "msg": "景点名和城市不能为空"}), 400
+    result = db.admin_add_spot(name, city, level, tag, desc, data.get("lat", 0), data.get("lng", 0), data.get("best_season", ""), data.get("duration", ""), data.get("ticket", ""), data.get("open_time", ""), data.get("transport", ""))
+    return jsonify({"code": 200, "data": result, "msg": "添加成功"})
+
+# 编辑景点
+@app.route("/api/admin/spots/<int:spot_id>", methods=["PUT"])
+def admin_update_spot(spot_id):
+    data = request.get_json()
+    db.admin_update_spot(spot_id, data)
+    return jsonify({"code": 200, "msg": "更新成功"})
+
+# 删除景点
+@app.route("/api/admin/spots/<int:spot_id>", methods=["DELETE"])
+def admin_delete_spot(spot_id):
+    db.admin_delete_spot(spot_id)
+    return jsonify({"code": 200, "msg": "删除成功"})
+
+# 上下架景点
+@app.route("/api/admin/spots/<int:spot_id>/toggle", methods=["POST"])
+def admin_toggle_spot(spot_id):
+    data = request.get_json()
+    status = data.get("status", "active")
+    db.admin_toggle_spot(spot_id, status)
+    return jsonify({"code": 200, "msg": "操作成功"})
+
+# 管理员删除评论
+@app.route("/api/admin/comments/<int:comment_id>", methods=["DELETE"])
+def admin_delete_comment(comment_id):
+    db.admin_delete_comment(comment_id)
+    return jsonify({"code": 200, "msg": "删除成功"})
+
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)

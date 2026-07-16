@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>景点详情</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body{
             padding:30px;
@@ -309,6 +310,12 @@
         }
         .fav-btn-big:hover{ background:#fff1f0; }
         .fav-btn-big.fav-active{ background:#ff4d4f; color:white; }
+
+        /* 地图 */
+        .map-block{ margin-top:30px; padding-top:20px; border-top:1px solid #e0e0e0; }
+        .map-block h3{ margin-bottom:12px; }
+        #mapContainer{ width:100%; height:350px; border-radius:10px; z-index:1; }
+
         .modal-overlay{
             position:fixed;
             top:0; left:0;
@@ -415,6 +422,12 @@
     <div class="food-lightbox" id="foodLightbox" onclick="closeFoodLightbox(event)">
         <span class="close-btn">&times;</span>
         <img src="" alt="城市美食" id="foodLightboxImg">
+    </div>
+
+    <!-- 地图 -->
+    <div class="map-block" id="mapBlock" style="display:none;">
+        <h3>📍 景点位置</h3>
+        <div id="mapContainer"></div>
     </div>
 
     <!-- 评论 -->
@@ -527,6 +540,21 @@
                 document.getElementById("tipsGrid").innerHTML = tips.map(t=>
                     `<div class="tip-item"><span class="tip-label">${t.label}：</span><span class="tip-value">${t.value}</span></div>`
                 ).join('');
+            }
+
+            // 地图
+            if(item.lat && item.lng && item.lat!=0 && item.lng!=0){
+                document.getElementById("mapBlock").style.display = 'block';
+                setTimeout(()=>{
+                    if(!document.getElementById("mapContainer")._leaflet_id){
+                        const map = L.map('mapContainer').setView([item.lat, item.lng], 14);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; OpenStreetMap',
+                            maxZoom: 18
+                        }).addTo(map);
+                        L.marker([item.lat, item.lng]).addTo(map).bindPopup(`<b>${item.name}</b><br>${item.city}`).openPopup();
+                    }
+                }, 100);
             }
 
             loadFavBtn();
@@ -830,5 +858,6 @@
             if(e.target.id === "authModal") closeModal();
         });
     </script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>
 </html>
