@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+.env
+.git
+.gitignore
+*.txt
+check_*.py
+download_videos.py
+gen_videos.py
+delete_dup.py
+.vscode
