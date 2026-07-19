@@ -1,6 +1,7 @@
-from flask import Flask, jsonify, request, send_from_directory, render_template
+from flask import Flask, jsonify, request, send_from_directory, render_template, send_file, Response
 from flask_cors import CORS
 import os
+import re
 import secrets
 from werkzeug.security import check_password_hash
 # import db_sqlite as db
@@ -135,6 +136,44 @@ def get_video_detail(video_id):
     if not video:
         return jsonify({"code": 404, "msg": "视频不存在"}), 404
     return jsonify({"code": 200, "data": video})
+
+
+# 视频文件服务（支持 Range 请求，浏览器播放必需）
+@app.route("/static/videos/<path:filename>")
+def serve_video(filename):
+    file_path = os.path.join(app.static_folder, "videos", filename)
+    if not os.path.isfile(file_path):
+        return jsonify({"code": 404, "msg": "视频不存在"}), 404
+
+    file_size = os.path.getsize(file_path)
+    range_header = request.headers.get("Range")
+
+    if range_header:
+        m = re.search(r"bytes=(\d+)-(\d*)", range_header)
+        if m:
+            start = int(m.group(1))
+            end = int(m.group(2)) if m.group(2) else file_size - 1
+        else:
+            start, end = 0, file_size - 1
+
+        if start >= file_size:
+            return Response(status=416)
+
+        end = min(end, file_size - 1)
+        length = end - start + 1
+
+        with open(file_path, "rb") as f:
+            f.seek(start)
+            data = f.read(length)
+
+        resp = Response(data, 206, mimetype="video/mp4", direct_passthrough=True)
+        resp.headers["Content-Range"] = f"bytes {start}-{end}/{file_size}"
+        resp.headers["Accept-Ranges"] = "bytes"
+        resp.headers["Content-Length"] = str(length)
+        return resp
+
+    return send_file(file_path, mimetype="video/mp4")
+
 
 # 获取景点评论列表
 @app.route("/api/spots/<int:spot_id>/comments", methods=["GET"])
