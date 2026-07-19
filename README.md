@@ -23,38 +23,50 @@
 - **跨域**：Flask-CORS
 - **环境变量**：python-dotenv
 - **密码加密**：Werkzeug scrypt
+- **部署**：Docker + ECS (Ubuntu 24.04)
 
 ## 项目目录结构
 
 ```
 tourism-spot-recommend/
 ├── README.md
+├── Dockerfile               # Docker 构建配置
+├── .env                     # 环境变量（需自行创建，见部署章节）
 ├── backend/
-│   ├── app.py                # Flask 主入口，路由和 API
-│   ├── db_supabase.py        # Supabase 数据库操作层
-│   ├── db_sqlite.py          # SQLite 备用数据库方案（未启用）
-│   ├── migrate.sql           # 数据库迁移脚本（8 部分）
-│   ├── requirements.txt       # Python 依赖
-│   ├── .env                  # 环境变量（需自行创建）
+│   ├── app.py               # Flask 主入口，路由和 API
+│   ├── db_supabase.py       # Supabase 数据库操作层
+│   ├── db_sqlite.py         # SQLite 备用数据库方案（未启用）
+│   ├── migrate.sql          # 数据库迁移脚本
+│   ├── requirements.txt     # Python 依赖
 │   ├── static/
-│   │   ├── images/           # 景点封面图、美食图片
-│   │   │   └── foods/        # 12个城市美食图片
-│   │   └── videos/           # 短视频素材
+│   │   ├── images/          # 景点封面图、美食图片
+│   │   │   └── foods/       # 12个城市美食图片
+│   │   └── videos/          # 短视频素材（Git LFS 管理）
 │   └── templates/
-│       ├── index.html        # 首页（轮播+卡片列表+筛选）
-│       ├── detail.html       # 详情页（攻略+地图+评论+美食）
-│       ├── profile.html      # 个人主页
-│       ├── notes.html        # 游记广场
-│       └── admin.html        # 管理后台
+│       ├── index.html       # 首页（轮播+卡片列表+筛选）
+│       ├── detail.html      # 详情页（攻略+地图+评论+美食）
+│       ├── profile.html     # 个人主页
+│       ├── notes.html       # 游记广场
+│       └── admin.html       # 管理后台
+└── docs/                    # 项目文档
 ```
 
-## 安装与运行
+## 本地开发
 
 ### 1. 克隆仓库
 
+> 视频文件使用 Git LFS 管理，请先安装 git-lfs。
+
 ```bash
+# 安装 Git LFS
+# Windows: 下载 https://git-lfs.com/
+# macOS: brew install git-lfs
+# Linux: apt-get install git-lfs
+
+git lfs install
 git clone https://github.com/Huang-h06/tourism-spot-recommend.git
 cd tourism-spot-recommend
+git lfs pull
 ```
 
 ### 2. 安装 Python 依赖
@@ -66,7 +78,7 @@ pip install -r requirements.txt
 
 ### 3. 配置环境变量
 
-在 `backend/` 目录下创建 `.env` 文件：
+在项目根目录创建 `.env` 文件：
 
 ```env
 SUPABASE_URL=https://your-project.supabase.co
@@ -94,6 +106,94 @@ python app.py
 访问 http://127.0.0.1:5000/
 
 ---
+
+## ECS 服务器部署（Docker）
+
+### 服务器要求
+
+- Ubuntu 22.04 / 24.04
+- 至少 2 vCPU / 2 GiB 内存
+- 安全组/防火墙开放 **8080 端口**（TCP 入方向）
+
+### 1. 安装 Docker
+
+```bash
+apt-get update && apt-get install -y docker.io git git-lfs
+systemctl enable docker --now
+```
+
+### 2. 拉取代码
+
+> 视频文件使用 Git LFS，必须先安装 git-lfs 并执行 `git lfs pull`。
+
+```bash
+git lfs install
+git clone https://github.com/Huang-h06/tourism-spot-recommend.git /opt/tourism-app
+cd /opt/tourism-app
+git lfs pull
+```
+
+### 3. 配置 Supabase 环境变量
+
+在项目根目录创建 `.env` 文件：
+
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-anon-public-key
+```
+
+### 4. 构建并启动
+
+```bash
+cd /opt/tourism-app
+docker build -t tourism-app .
+docker run -d \
+  --name tourism-app \
+  -p 8080:8080 \
+  --restart=always \
+  tourism-app:latest
+```
+
+### 5. 验证
+
+```bash
+curl -s http://localhost:8080 | head -5
+```
+
+外网访问：`http://你的服务器IP:8080`
+
+### Docker 日常运维
+
+```bash
+# 查看状态
+docker ps -a
+
+# 查看日志
+docker logs -f tourism-app
+
+# 重启
+docker restart tourism-app
+
+# 更新代码并重建
+cd /opt/tourism-app
+git pull origin main && git lfs pull
+docker stop tourism-app && docker rm tourism-app
+docker build --no-cache -t tourism-app .
+docker run -d --name tourism-app -p 8080:8080 --restart=always tourism-app:latest
+```
+
+### 部署常⻅问题
+
+| 问题 | 原因 | 解决 |
+|------|------|------|
+| 外网访问不通 | 安全组没开放 8080 | 阿里云/腾讯云控制台添加 TCP 8080 入方向规则 |
+| 容器反复重启 | `.env` 未进入容器或 SUPABASE_URL 为空 | 确保 `.env` 在项目根目录，或在 Dockerfile 中 COPY |
+| 视频只有 132 字节 | 未安装 git-lfs，下载的是 LFS 指针 | 安装 git-lfs 并执行 `git lfs pull` |
+| 视频无法播放 | Flask 开发服务器不支持 Range 请求 | 已内置 `/static/videos/` 路由处理 Range 请求 |
+
+---
+
+## 完整 API 文档
 
 ## 完整 API 文档
 
@@ -229,13 +329,14 @@ python app.py
 | 环境 | 地址 |
 |------|------|
 | 本地开发 | http://127.0.0.1:5000/ |
-| 线上部署 | https://tourism-spot-app-283862-10-1420527839.sh.run.tcloudbase.com |
+| 线上部署 | http://8.217.15.166:8080 |
 
-> 线上环境通过 CloudBase 云托管部署。
+> 线上环境通过阿里云 ECS (Ubuntu 24.04) + Docker 部署，运行在 8080 端口。
 
-## 项目演示与验收
+## 项目文档
 
 - 数据库迁移脚本：`backend/migrate.sql`
 - 接口文档：见本文档 API 清单章节
 - Prompt 日志：`docs/prompt_log.md`
 - 个人总结报告：`docs/个人总结报告.md`
+- 部署脚本：`deploy-ecs.sh`（快速部署）、`fix-server.sh`（Git LFS + 重建修复）
